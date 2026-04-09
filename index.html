@@ -134,6 +134,15 @@ body.wiz-active #panelGPS,
 body.wiz-active #panelTransit,
 body.wiz-active #panelRens { display:none !important; }
 
+/* Mode transit : afficher panelTransit avec la barre mobile */
+body.transit-active #panelTransit { display:block !important; }
+body.transit-active #panelDepart,
+body.transit-active #panelGPS,
+body.transit-active #panelAmbiance,
+body.transit-active #panelRens { display:none !important; }
+body.transit-active .topbar { display:none !important; }
+body.transit-active .container { margin-top:120px; padding-bottom:80px; }
+
 /* Étapes 1,2 : masquer panelAmbiance et afficher les cards wizard à la place */
 body.wiz-s0 #panelAmbiance,
 body.wiz-s1 #panelAmbiance { display:none !important; }
@@ -1869,11 +1878,6 @@ section.card[data-card="photosInterv"]{
 <!-- Panneaux statut -->
     <section id="panelTransit" class="card panel" data-panel="transit">
       <div class="card-title">Message en transit</div>
-
-      <!-- Bouton retour feuille de départ -->
-      <button type="button" onclick="mobTransitBack()" style="width:100%;min-height:52px;border-radius:16px;border:none;background:var(--accent);color:#fff;font-size:17px;font-weight:900;cursor:pointer;margin-bottom:14px;box-shadow:0 0 18px var(--accent)66;letter-spacing:.02em;">
-        ← Retour feuille de départ
-      </button>
 
       <label>Je suis à environ</label>
       <input id="distance" placeholder="ex : 2 km" inputmode="text" />
@@ -12718,9 +12722,20 @@ try{ refreshGlobalCards(); }catch(e){}
   window.mobTransit = function(){
     byId('mobFeuille').classList.add('off');
     var t=q('.tab[data-tab="transit"]'); if(t) t.click();
+    // Afficher la barre de navigation mobile sans wiz-active (qui masquerait panelTransit)
+    document.body.classList.add('transit-active');
+    byId('mobWizHeader').classList.remove('off');
+    byId('mobWizFooter').classList.add('off');
+    byId('mobWizCards').classList.add('off');
+    // Adapter le step bar pour le transit
+    var lbl = byId('mwLabel'); if(lbl) lbl.textContent = 'Message en transit';
+    var ttl = byId('mwTitle'); if(ttl) ttl.textContent = '🚒 En route vers l\'intervention';
+    var prg = byId('mwProgress'); if(prg) prg.innerHTML = '';
+    navSetMode('transit');
   };
   window.mobTransitBack = function(){
-    // Revenir sur la feuille de départ
+    document.body.classList.remove('transit-active');
+    byId('mobWizHeader').classList.add('off');
     var t=q('.tab[data-tab="ambiance"]'); if(t) t.click();
     byId('mobFeuille').classList.remove('off');
   };
@@ -14252,6 +14267,8 @@ try{ refreshGlobalCards(); }catch(e){}
   window.mainNavBack = function(){
     if(_navMode === 'renseignement'){
       rensBack();
+    } else if(_navMode === 'transit'){
+      mobTransitBack();
     } else {
       mobWizBack();
     }
@@ -14458,10 +14475,16 @@ try{ refreshGlobalCards(); }catch(e){}
   window.navGoAccueil = function(){
     // Reset complet avant de revenir à l'accueil
     if(typeof resetFullState === 'function') resetFullState();
+    // Si on était en transit, remettre sur ambiance
+    if(_navMode === 'transit'){
+      var tabAmb = document.querySelector('.tab[data-tab="ambiance"]');
+      if(tabAmb) tabAmb.click();
+    }
     // Fermer tout
     document.body.classList.remove(
       'wiz-active','wiz-s0','wiz-s1','wiz-s2','wiz-s3','wiz-s4',
-      'rens-active','rens-s0','rens-s1','rens-s2','rens-s3','rens-s4','rens-s5'
+      'rens-active','rens-s0','rens-s1','rens-s2','rens-s3','rens-s4','rens-s5',
+      'transit-active'
     );
     byId('mobWizHeader').classList.add('off');
     byId('mobWizFooter').classList.add('off');

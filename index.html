@@ -1870,6 +1870,11 @@ section.card[data-card="photosInterv"]{
     <section id="panelTransit" class="card panel" data-panel="transit">
       <div class="card-title">Message en transit</div>
 
+      <!-- Bouton retour feuille de départ -->
+      <button type="button" onclick="mobTransitBack()" style="width:100%;min-height:52px;border-radius:16px;border:none;background:var(--accent);color:#fff;font-size:17px;font-weight:900;cursor:pointer;margin-bottom:14px;box-shadow:0 0 18px var(--accent)66;letter-spacing:.02em;">
+        ← Retour feuille de départ
+      </button>
+
       <label>Je suis à environ</label>
       <input id="distance" placeholder="ex : 2 km" inputmode="text" />
 
@@ -12713,6 +12718,11 @@ try{ refreshGlobalCards(); }catch(e){}
   window.mobTransit = function(){
     byId('mobFeuille').classList.add('off');
     var t=q('.tab[data-tab="transit"]'); if(t) t.click();
+  };
+  window.mobTransitBack = function(){
+    // Revenir sur la feuille de départ
+    var t=q('.tab[data-tab="ambiance"]'); if(t) t.click();
+    byId('mobFeuille').classList.remove('off');
   };
   window.mobArrive = function(){
     /* Auto-fill Je suis */

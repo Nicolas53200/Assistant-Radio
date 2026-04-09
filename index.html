@@ -12708,6 +12708,10 @@ try{ refreshGlobalCards(); }catch(e){}
     byId('mobFeuille').classList.add('off');
     byId('mobHome').classList.remove('off');
     mobWizOff();
+    // Reset scroll pour éviter le décalage sur iOS
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   };
 
   /* ---- Feuille ---- */
@@ -13169,7 +13173,11 @@ try{ refreshGlobalCards(); }catch(e){}
   }
   function mobWizOff(){
     window._wizardFenMode = false;
-    document.body.classList.remove('wiz-active','wiz-s0','wiz-s1','wiz-s2','wiz-s3','wiz-s4');
+    document.body.classList.remove(
+      'wiz-active','wiz-s0','wiz-s1','wiz-s2','wiz-s3','wiz-s4',
+      'transit-active','rens-active',
+      'rens-s0','rens-s1','rens-s2','rens-s3','rens-s4','rens-s5'
+    );
     // Ne cache le header QUE si on retourne à la page accueil (pas si passage en rens)
     if(_navMode !== 'renseignement'){
       byId('mobWizHeader').classList.add('off');
@@ -14495,6 +14503,10 @@ try{ refreshGlobalCards(); }catch(e){}
     byId('mobFeuille').classList.add('off');
     byId('mobHome').classList.remove('off');
     _navMode = 'ambiance';
+    // Reset scroll pour éviter le décalage sur iOS
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
   };
 
   window.mwArchiver = function(){

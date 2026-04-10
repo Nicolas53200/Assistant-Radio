@@ -1470,9 +1470,9 @@ section.card[data-card="photosInterv"]{
     </div>
     <!-- Bloc AVP : résumé véhicules saisis -->
     <div id="mwPage1Avp" class="wiz-card" style="display:none">
-      <div class="wiz-card-title">Récapitulatif véhicules</div>
-      <div id="mwAvpVehSummary" style="font-size:15px;line-height:1.5;opacity:.9;">(aucun véhicule saisi)</div>
-      <div class="note" style="margin-top:10px;font-size:13px;">Revenez à l'étape précédente pour modifier les véhicules impliqués.</div>
+      <div class="wiz-card-title">Récapitulatif usagers impliqués</div>
+      <div id="mwAvpVehSummary" style="font-size:15px;line-height:1.5;opacity:.9;">(aucun usager saisi)</div>
+      <div class="note" style="margin-top:10px;font-size:13px;">Revenez à l'étape précédente pour modifier les usagers impliqués.</div>
     </div>
     <div class="wiz-card"><div class="wiz-card-title">Message radio</div><div class="wiz-output" id="mwOut1">—</div></div>
   </div>
@@ -1496,6 +1496,7 @@ section.card[data-card="photosInterv"]{
     </div>
     <div class="wiz-card">
       <div class="wiz-output" id="mwOutFinal" style="font-size:21px;min-height:120px;">—</div>
+      <div id="mwPhotosGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;"></div>
       <div style="display:flex;gap:10px;margin-top:14px;">
         <button class="btn" style="flex:1;min-height:58px;font-size:19px;" onclick="mwCopy('mwOutFinal')">📋 Copier</button>
         <button class="btn primary" style="flex:1;min-height:58px;font-size:19px;" onclick="mwShare()">↗️ Partager</button>
@@ -1670,6 +1671,7 @@ section.card[data-card="photosInterv"]{
     <div class="wiz-card">
       <div class="wiz-card-title">✅ Message prêt radio</div>
       <div class="wiz-output" id="rwOutFinal" style="font-size:20px;min-height:100px;">—</div>
+      <div id="rwPhotosGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;"></div>
       <div style="display:flex;gap:10px;margin-top:12px;">
         <button class="btn" style="flex:1;min-height:54px;" onclick="rwCopy()">📋 Copier</button>
         <button class="btn primary" style="flex:1;min-height:54px;" onclick="rwArchive()">🗂 Archiver</button>
@@ -1734,6 +1736,7 @@ section.card[data-card="photosInterv"]{
     <div class="wiz-card">
       <div class="wiz-card-title">✅ Message prêt radio</div>
       <div class="wiz-output" id="rwAvpOutFinal" style="font-size:20px;min-height:100px;">—</div>
+      <div id="rwAvpPhotosGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;"></div>
       <div style="display:flex;gap:10px;margin-top:12px;">
         <button class="btn" style="flex:1;min-height:54px;" onclick="rwAvpCopy()">📋 Copier</button>
         <button class="btn primary" style="flex:1;min-height:54px;" onclick="rwArchive()">🗂 Archiver</button>
@@ -2082,7 +2085,7 @@ section.card[data-card="photosInterv"]{
             </button>
             <div class="fen-nav-center">
               <div class="fen-nav-step-num" id="avpStepNum">Étape 1 / 2</div>
-              <div class="fen-nav-step-name" id="avpStepLabel">Véhicules</div>
+              <div class="fen-nav-step-name" id="avpStepLabel">Usagers impliqués</div>
               <div class="fen-nav-dots" id="avpNavDots"></div>
             </div>
             <button id="avpNext" class="fen-nav-arrow next" type="button">
@@ -2095,8 +2098,8 @@ section.card[data-card="photosInterv"]{
           <div id="avpStep0" class="fen-step">
             <div class="grid2" style="align-items:start">
               <div>
-                <div class="section-title">Nombre de véhicules impliqués</div>
-                <div class="chips center" id="avpCountChips" aria-label="Nombre de véhicules">
+                <div class="section-title">Nombre d'usagers impliqués</div>
+                <div class="chips center" id="avpCountChips" aria-label="Nombre d'usagers">
                   <button class="chip" type="button" data-count="1">1</button>
                   <button class="chip" type="button" data-count="2">2</button>
                   <button class="chip" type="button" data-count="3">3</button>
@@ -2132,8 +2135,8 @@ section.card[data-card="photosInterv"]{
           <div id="avpStep1" class="fen-step" hidden>
             <div id="avpVehiclesEditor"></div>
             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
-              <button type="button" class="btn" style="flex:1;min-height:48px;" onclick="window.avpAddAndGo()">➕ Ajouter un véhicule</button>
-              <button type="button" class="btn" style="flex:1;min-height:48px;background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);" onclick="window.avpDeleteCurrent()">🗑️ Supprimer ce véhicule</button>
+              <button type="button" class="btn" style="flex:1;min-height:48px;" onclick="window.avpAddAndGo()">➕ Ajouter un usager</button>
+              <button type="button" class="btn" style="flex:1;min-height:48px;background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);" onclick="window.avpDeleteCurrent()">🗑️ Supprimer cet usager</button>
             </div>
           </div>
         </div>
@@ -8133,7 +8136,7 @@ function avpTypeLabel(t){
     "VL":"VL",
     "MOTO":"2 roues",
     "PL":"PL",
-    "BUS":"Bus / Car",
+    "BUS":"bus/car",
     "AGRICOLE":"Engin agricole",
     "VELO":"Vélo / Trottinette",
     "PIETON":"Piéton",
@@ -8962,7 +8965,9 @@ function avpNormalizeVeh(v){
     bloqueeN: Math.max(0, parseInt(base.bloqueeN != null ? base.bloqueeN : bloqLegacy, 10) || 0),
     ejecteeN: Math.max(0, parseInt(base.ejecteeN != null ? base.ejecteeN : ejectLegacy, 10) || 0),
     obstacleType: String(base.obstacleType || "").trim(),
-    obstacleAutre: String(base.obstacleAutre || "").trim()
+    obstacleAutre: String(base.obstacleAutre || "").trim(),
+    pietSituation: String(base.pietSituation || "").trim(),  // EJECTE / SOUS / SUR
+    pietBilan: String(base.pietBilan || "").trim()           // DCD / UA / UR
   };
 }
 function avpVictimCount(v){
@@ -9023,11 +9028,11 @@ function refreshAvpCountUi(){
 }
 
 function avpStepName(s){
-  if(s===0) return 'Véhicules';
+  if(s===0) return 'Usagers impliqués';
   var v = state.avpVehicles && state.avpVehicles[s-1];
   var m = {VL:'VL',MOTO:'2 roues',PL:'PL',BUS:'Bus/Car',AGRICOLE:'Engin agri.',
            VELO:'Vélo',TROTTINETTE:'Trottinette',PIETON:'Piéton',AUTRE:'Autre'};
-  return 'Véhicule '+s+(v&&v.type?' ('+( m[v.type]||v.type)+')':'');
+  return 'Usager '+s+(v&&v.type?' ('+( m[v.type]||v.type)+')':'');
 }
 
 function setAvpStep(step){
@@ -9162,7 +9167,7 @@ function renderAvpVehiclesEditor(){
     const totalOpts = Array.from({length: Math.max(total, 0)}, (_,k)=>`<option value="${k+1}">${k+1}</option>`).join('');
     return `
       <div class="subcard" data-avp-veh-card="${i}">
-        <div class="subcard-title">Véhicule ${i+1}</div>
+        <div class="subcard-title">Usager ${i+1}</div>
         <div style="display:grid; gap:10px;">
           <div class="subcard tight">
             <div class="subcard-title">Type de moyen</div>
@@ -9195,23 +9200,50 @@ function renderAvpVehiclesEditor(){
             </div>
           </div>
 
+          ${['PIETON','VELO','TROTTINETTE'].includes(v.type) ? `
           <div class="subcard tight">
-            <div class="subcard-title">Type d’accident</div>
+            <div class="subcard-title">Situation</div>
+            <div class="chips center">
+              ${ (()=>{
+                // Trouver l'autre moyen impliqué (le premier autre usager non-piéton/vélo/trottinette, sinon le premier autre)
+                const PIET = ['PIETON','VELO','TROTTINETTE'];
+                const others = state.avpVehicles.filter((_,j)=>j!==i);
+                const otherVeh = others.find(u=>!PIET.includes((u&&u.type)||'')) || others[0];
+                const OTHER_LABEL = {VL:'VL',MOTO:'2 roues',PL:'PL',BUS:'bus/car',AGRICOLE:'engin agricole',VELO:'vélo',TROTTINETTE:'trottinette',PIETON:'piéton',AUTRE:'véhicule'};
+                const otherNoun = otherVeh ? (OTHER_LABEL[(otherVeh.type||'').toUpperCase()] || 'véhicule') : 'véhicule';
+                const elideBtn = (prep, noun) => { const vowels='aeiouéèêëàâùûîïo'; return vowels.includes((noun||'')[0].toLowerCase()) ? prep+"l'"+noun : prep+'le '+noun; };
+                return [
+                  ['EJECTE','Éjecté'],
+                  ['SOUS', elideBtn('Sous ', otherNoun)],
+                  ['SUR',  elideBtn('Sur ',  otherNoun)]
+                ].map(([val,txt])=>'<button class="chip'+(v.pietSituation===val?' active':'')+'" type="button" data-avp-kind="pietSit" data-i="'+i+'" data-val="'+val+'">'+txt+'</button>').join('');
+              })() }
+            </div>
+          </div>
+          <div class="subcard tight">
+            <div class="subcard-title">Bilan provisoire</div>
+            <div class="chips center">
+              ${[['DCD','DCD'],['UA','UA'],['UR','UR']].map(([val,txt])=>'<button class="chip'+(v.pietBilan===val?' active':'')+' " type="button" data-avp-kind="pietBilan" data-i="'+i+'" data-val="'+val+'">'+txt+'</button>').join('')}
+            </div>
+          </div>
+          ` : `
+          <div class="subcard tight">
+            <div class="subcard-title">Type d'accident</div>
             <div class="chips center">${chipButtons(accidentItems, v.accidents, {kind:'acc', i, multi:true})}</div>
           </div>
 
           ${avpArrayify(v.accidents).includes('OBSTACLE') ? `
           <div class="subcard tight" data-avp-obstacle-wrap style="border:1px solid rgba(251,191,36,.3);background:rgba(251,191,36,.06)">
-            <div class="subcard-title" style="font-size:13px;opacity:.9">🚧 Type d’obstacle</div>
+            <div class="subcard-title" style="font-size:13px;opacity:.9">🚧 Type d'obstacle</div>
             <div class="chips center">
               ${[['MUR','🧱 Mur'],['POTEAU_ELEC','⚡ Poteau élec.'],['POTEAU_TEL','📞 Poteau tél.'],['CANDELABRE','💡 Candélabre'],['AUTRE','✏️ Autre']].map(([val,txt])=>{
                 const active = v.obstacleType === val;
-                return '<button class="chip'+(active?' active':'')+'" type="button" data-avp-kind="obstacle-type" data-i="'+i+'" data-val="'+val+'">'+txt+'</button>';
+                return '<button class="chip'+(active?' active':'')+' " type="button" data-avp-kind="obstacle-type" data-i="'+i+'" data-val="'+val+'">'+txt+'</button>';
               }).join('')}
             </div>
             ${v.obstacleType === 'AUTRE' ? `
             <div style="margin-top:10px">
-              <label style="font-size:13px;opacity:.8">Préciser l’obstacle</label>
+              <label style="font-size:13px;opacity:.8">Préciser l'obstacle</label>
               <input type="text" data-avp-obstacle-autre data-i="${i}" value="${esc(v.obstacleAutre)}" placeholder="ex : glissière, arbre, panneau..." style="margin-top:6px" />
             </div>` : ''}
           </div>` : ''}
@@ -9220,6 +9252,7 @@ function renderAvpVehiclesEditor(){
             <div class="subcard-title">Position du véhicule</div>
             <div class="chips center">${chipButtons(positionItems, v.positions, {kind:'pos', i, multi:true})}</div>
           </div>
+          `}
 
           <div class="subcard tight">
             <div class="subcard-title">Victimes visibles</div>
@@ -9248,7 +9281,7 @@ function renderAvpVehiclesEditor(){
           </div>
 
           <div style="display:flex; justify-content:flex-end; gap:10px; flex-wrap:wrap;">
-            <button class="btn small" type="button" data-avp-del="${i}">🗑️ Supprimer ce véhicule</button>
+            <button class="btn small" type="button" data-avp-del="${i}">🗑️ Supprimer cet usager</button>
           </div>
         </div>
       </div>`;
@@ -9306,6 +9339,10 @@ function renderAvpVehiclesEditor(){
       } else if (kind === 'pos'){
         const list = avpArrayify(v.positions);
         v.positions = list.includes(val) ? list.filter(x=>x!==val) : [...list, val];
+      } else if (kind === 'pietSit'){
+        v.pietSituation = (v.pietSituation === val) ? '' : val;
+      } else if (kind === 'pietBilan'){
+        v.pietBilan = (v.pietBilan === val) ? '' : val;
       } else if (kind === 'victims'){
         const n = btn.dataset.v || '';
         v.victims = n;
@@ -9516,49 +9553,112 @@ function buildAvpAmbianceJeVois(){
   ensureAvpState();
   if (!state.avpVehicles.length) return "(à préciser)";
 
-  const vehBits = [];
+  const bits = [];
   let totalVictims = 0;
   let bloq = 0;
   let eject = 0;
 
-  state.avpVehicles.forEach((raw, idx)=>{
-    const v = avpNormalizeVeh(raw);
-    const nVict = avpVictimCount(v);
-    totalVictims += nVict;
-    const vb = Math.max(0, parseInt(v.bloqueeN || 0, 10) || 0);
-    const ve = Math.max(0, parseInt(v.ejecteeN || 0, 10) || 0);
-    bloq += vb;
-    eject += ve;
-    vehBits.push(avpVehicleDescription(v, idx, state.avpVehicles.length === 1 ? 'single' : 'multi'));
+  const vehicles = state.avpVehicles.map(avpNormalizeVeh);
+
+  vehicles.forEach(v => {
+    totalVictims += avpVictimCount(v);
+    bloq  += Math.max(0, parseInt(v.bloqueeN  || 0, 10) || 0);
+    eject += Math.max(0, parseInt(v.ejecteeN  || 0, 10) || 0);
   });
 
-  const bits = [];
-  if (vehBits.length === 1) bits.push(vehBits[0]);
-  else {
-    bits.push(`AVP impliquant ${state.avpVehicles.length} véhicules`);
-    bits.push(...vehBits.filter(Boolean));
-  }
+  // ── Phrase principale : "AVP impliquant X contre Y" ──
+  const PIET_TYPES_M = ['PIETON','VELO','TROTTINETTE'];
+  const pietTypeMapM = {PIETON:'piéton',VELO:'vélo',TROTTINETTE:'trottinette'};
+  const OTHER_LABEL_M = {VL:'VL',MOTO:'2 roues',PL:'PL',BUS:'bus/car',AGRICOLE:'engin agricole',VELO:'vélo',TROTTINETTE:'trottinette',PIETON:'piéton',AUTRE:'véhicule'};
+  const elideM2 = (prep, n) => { const vow='aeiouéèêëàâùûîïo'; return vow.includes((n||'')[0].toLowerCase()) ? prep+"l'"+n : prep+'le '+n; };
 
-  if (state.avpCinetique){
-    bits.push(`Cinétique ${state.avpCinetique === 'IMPORTANTE' ? 'importante' : 'faible'}`);
-  }
+  // Trier : vrais véhicules d'abord, piétons/vélos/trottinettes ensuite
+  const sorted = [...vehicles].sort((a,b) => {
+    return (PIET_TYPES_M.includes(a.type)?1:0) - (PIET_TYPES_M.includes(b.type)?1:0);
+  });
 
-  if (totalVictims){
-    if (totalVictims === 1){
-      if (bloq === 1) bits.push('1 victime bloquée');
-      else if (eject === 1) bits.push('1 victime éjectée');
-      else bits.push('1 victime');
-    } else {
-      const extra = [];
-      if (bloq) extra.push(`${bloq} bloquée${bloq>1?'s':''}`);
-      if (eject) extra.push(`${eject} éjectée${eject>1?'s':''}`);
-      let summary = `${totalVictims} victimes`;
-      if (extra.length) summary += ` dont ${avpJoinNatural(extra, ', ', ' et ')}`;
-      bits.push(summary);
+  if (sorted.length === 1) {
+    const v = sorted[0];
+    const isPiet = PIET_TYPES_M.includes(v.type);
+    const noun = isPiet ? pietTypeMapM[v.type] : avpVehicleNoun(v, 0);
+    let sentence = `AVP impliquant 1 ${noun}`;
+    if (!isPiet) {
+      const cargo = avpCargoPhrase(v);
+      if (cargo) sentence += ` ${cargo}`;
+      const adr = avpAdrPhrase(v);
+      if (adr) sentence += ` (${adr})`;
+      const accidents = avpArrayify(v.accidents).map(a => avpAccLabel(a, v)).filter(Boolean).map(x=>x.toLowerCase());
+      const positions  = avpArrayify(v.positions).map(avpPosLabel).filter(Boolean).map(x=>x.toLowerCase());
+      if (accidents.length) sentence += `, en ${avpJoinNatural(accidents, ', ', ' et ')}`;
+      if (positions.length)  sentence += `, ${avpJoinNatural(positions,  ', ', ' et ')}`;
     }
+    bits.push(sentence);
+  } else {
+    const nounParts = sorted.map((v, idx) => {
+      const isPiet = PIET_TYPES_M.includes(v.type);
+      if (isPiet) {
+        const noun = pietTypeMapM[v.type];
+        const others = sorted.filter((_,j)=>j!==idx);
+        const otherVeh = others.find(u=>!PIET_TYPES_M.includes(u.type)) || others[0];
+        const otherNoun = otherVeh ? (OTHER_LABEL_M[otherVeh.type] || 'véhicule') : 'véhicule';
+        const sitParts = [];
+        if (v.pietSituation === 'EJECTE') sitParts.push('éjecté');
+        else if (v.pietSituation === 'SOUS') sitParts.push('actuellement ' + elideM2('sous ', otherNoun));
+        else if (v.pietSituation === 'SUR') sitParts.push('actuellement ' + elideM2('sur ', otherNoun));
+        const sitStr = sitParts.length ? ` (${sitParts.join(', ')})` : '';
+        return `1 ${noun}${sitStr}`;
+      }
+      let n = avpVehicleNoun(v, idx);
+      const cargo = avpCargoPhrase(v);
+      if (cargo) n += ` ${cargo}`;
+      const adr = avpAdrPhrase(v);
+      if (adr) n += ` (${adr})`;
+      const accidents = avpArrayify(v.accidents).map(a => avpAccLabel(a, v)).filter(Boolean).map(x=>x.toLowerCase());
+      const positions  = avpArrayify(v.positions).map(avpPosLabel).filter(Boolean).map(x=>x.toLowerCase());
+      if (accidents.length) n += `, en ${avpJoinNatural(accidents, ', ', ' et ')}`;
+      if (positions.length)  n += `, ${avpJoinNatural(positions,  ', ', ' et ')}`;
+      return `1 ${n}`;
+    });
+    bits.push(`AVP impliquant ${nounParts.join(' contre ')}`);
   }
 
-  return bits.filter(Boolean).join('. ');
+  // ── Cinétique ──
+  if (state.avpCinetique){
+    bits.push(`cinétique ${state.avpCinetique === 'IMPORTANTE' ? 'importante' : 'faible'}`);
+  }
+
+  // ── Bilan victimes ──
+  // Collecter les bilans piéton/vélo/trottinette explicites
+  const pietBilans = sorted
+    .filter(v => PIET_TYPES.includes(v.type) && v.pietBilan)
+    .map(v => ({DCD:'DCD', UA:'UA', UR:'UR'}[v.pietBilan] || ''))
+    .filter(Boolean);
+
+  if (pietBilans.length > 0) {
+    // Grouper par bilan avec chiffre : "1 UA", "2 UR"
+    const bilanGroups = {};
+    pietBilans.forEach(b => { bilanGroups[b] = (bilanGroups[b]||0)+1; });
+    const bilanStr = Object.entries(bilanGroups)
+      .map(([b,n]) => `${n} ${b}`)
+      .join(', ');
+    bits.push(`bilan provisoire : ${bilanStr}`);
+  } else if (totalVictims || bloq || eject) {
+    let victStr = '';
+    if (totalVictims === 1) {
+      if (bloq === 1)  victStr = '1 victime bloquée';
+      else if (eject === 1) victStr = '1 victime éjectée';
+      else victStr = '1 victime';
+    } else if (totalVictims > 1) {
+      victStr = `${totalVictims} victimes`;
+      const extra = [];
+      if (bloq)  extra.push(`${bloq} bloquée${bloq  > 1 ? 's' : ''}`);
+      if (eject) extra.push(`${eject} éjectée${eject > 1 ? 's' : ''}`);
+      if (extra.length) victStr += ` dont ${avpJoinNatural(extra, ', ', ' et ')}`;
+    }
+    if (victStr) bits.push(`bilan provisoire : ${victStr}`);
+  }
+
+  return bits.filter(Boolean).join(', ');
 }
 
 function wireAvpAmbiance(){
@@ -12035,7 +12135,7 @@ try{ refreshGlobalCards(); }catch(e){}
   function uniq(arr){ return [...new Set((arr||[]).filter(Boolean))]; }
 
   const TYPE_LABEL = {
-    VL:'VL', MOTO:'2 roues', PL:'PL', BUS:'Bus / Car', AGRICOLE:'Engin agricole', VELO:'Vélo / Trottinette', PIETON:'Piéton', AUTRE:'Autre'
+    VL:'VL', MOTO:'2 roues', PL:'PL', BUS:'bus/car', AGRICOLE:'Engin agricole', VELO:'Vélo / Trottinette', PIETON:'Piéton', AUTRE:'Autre'
   };
   const ACC_LABEL = {
     SEUL:'accident seul', FRONTAL:'choc frontal', ARRIERE:'choc arrière', LATERAL:'choc latéral', OBSTACLE:'contre obstacle', TONNEAUX:'tonneaux'
@@ -12085,6 +12185,8 @@ try{ refreshGlobalCards(); }catch(e){}
         accidents: activeVals(card, 'button[data-avp-kind="acc"].active'),
         positions: activeVals(card, 'button[data-avp-kind="pos"].active'),
         plSubtype: activeVals(card, 'button[data-avp-kind="plsub"].active')[0] || '',
+        pietSituation: activeVals(card, 'button[data-avp-kind="pietSit"].active')[0] || '',
+        pietBilan: activeVals(card, 'button[data-avp-kind="pietBilan"].active')[0] || '',
         cargo: String((cargoInput && cargoInput.value) || '').trim(),
         adrDanger: String((adrDangerInput && adrDangerInput.value) || '').trim(),
         adrMatter: String((adrMatterInput && adrMatterInput.value) || '').trim(),
@@ -12175,17 +12277,74 @@ try{ refreshGlobalCards(); }catch(e){}
   function buildJeVois(vehicles){
     if(!vehicles.length) return '(à préciser)';
     const bits = [];
-    if(vehicles.length === 1){
-      bits.push(vehicleSentence(vehicles[0], 0, 'single'));
+
+    // Phrase principale fluide
+    var PIET_TYPES_MB = ['PIETON','VELO','TROTTINETTE'];
+    var PIET_NOUN_MB = {PIETON:'piéton',VELO:'vélo',TROTTINETTE:'trottinette'};
+    var OTHER_LBL_MB = {VL:'VL',MOTO:'2 roues',PL:'PL',BUS:'bus/car',AGRICOLE:'engin agricole',VELO:'vélo',TROTTINETTE:'trottinette',PIETON:'piéton',AUTRE:'véhicule'};
+    var elideMB = function(prep,n){ var vow='aeiouéèêëàâùûîïo'; return vow.indexOf((n||'')[0].toLowerCase())>=0 ? prep+"l'"+n : prep+'le '+n; };
+    // Trier : vrais véhicules d'abord, piétons ensuite
+    var sorted_mb = vehicles.slice().sort(function(a,b){ return (PIET_TYPES_MB.indexOf(a.type)>=0?1:0)-(PIET_TYPES_MB.indexOf(b.type)>=0?1:0); });
+
+    if(sorted_mb.length === 1){
+      var v0 = sorted_mb[0];
+      var isPietSingle = PIET_TYPES_MB.indexOf(v0.type)>=0;
+      var type0 = isPietSingle ? (PIET_NOUN_MB[v0.type]||'piéton') : (TYPE_LABEL[v0.type]||'véhicule');
+      var sentence = 'AVP impliquant 1 ' + type0;
+      if(!isPietSingle){
+        var cargo0 = String(v0.cargo||'').trim();
+        if(cargo0) sentence += ' transportant ' + cargo0;
+        var accs0 = uniq((v0.accidents||[]).map(function(a){ return ACC_LABEL[a]||''; })).filter(Boolean);
+        var poss0 = uniq((v0.positions||[]).map(function(p){ return POS_LABEL[p]||''; })).filter(Boolean);
+        if(accs0.length) sentence += ', en ' + accs0.join(' et ');
+        if(poss0.length) sentence += ', ' + poss0.join(' et ');
+      }
+      bits.push(sentence);
     } else {
-      bits.push('AVP impliquant ' + vehicles.length + ' véhicules');
-      bits.push(vehicles.map(function(v, idx){ return vehicleSentence(v, idx, 'multi'); }).join('. '));
+      var nounParts = sorted_mb.map(function(v, idx){
+        if(PIET_TYPES_MB.indexOf(v.type) >= 0){
+          var noun = PIET_NOUN_MB[v.type] || v.type.toLowerCase();
+          var othersM = sorted_mb.filter(function(_,j){ return j!==idx; });
+          var otherVehM = othersM.filter(function(u){ return PIET_TYPES_MB.indexOf(u.type)<0; })[0] || othersM[0];
+          var otherNounM = otherVehM ? (OTHER_LBL_MB[(otherVehM.type||'').toUpperCase()]||'véhicule') : 'véhicule';
+          var sitParts = [];
+          if(v.pietSituation === 'EJECTE') sitParts.push('éjecté');
+          else if(v.pietSituation === 'SOUS') sitParts.push('actuellement ' + elideMB('sous ', otherNounM));
+          else if(v.pietSituation === 'SUR')  sitParts.push('actuellement ' + elideMB('sur ',  otherNounM));
+          var sitStr = sitParts.length ? ' (' + sitParts.join(', ') + ')' : '';
+          return '1 ' + noun + sitStr;
+        }
+        var type = TYPE_LABEL[v.type] || ('véhicule ' + (idx+1));
+        var n = type;
+        var cargo = String(v.cargo||'').trim();
+        if(cargo) n += ' transportant ' + cargo;
+        var accs = uniq((v.accidents||[]).map(function(a){ return ACC_LABEL[a]||''; })).filter(Boolean);
+        var poss = uniq((v.positions||[]).map(function(p){ return POS_LABEL[p]||''; })).filter(Boolean);
+        if(accs.length) n += ', en ' + accs.join(' et ');
+        if(poss.length) n += ', ' + poss.join(' et ');
+        return '1 ' + n;
+      });
+      bits.push('AVP impliquant ' + nounParts.join(' contre '));
     }
-    if(window.state && state.avpCinetique === 'IMPORTANTE') bits.push('Cinétique importante');
-    if(window.state && state.avpCinetique === 'FAIBLE') bits.push('Cinétique faible');
-    const vict = buildVictimSummary(vehicles);
-    if(vict) bits.push(vict);
-    return bits.filter(Boolean).join('. ');
+
+    // Cinétique
+    if(window.state && state.avpCinetique === 'IMPORTANTE') bits.push('cinétique importante');
+    if(window.state && state.avpCinetique === 'FAIBLE') bits.push('cinétique faible');
+
+    // Bilan victimes — priorité aux bilans piéton/vélo/trottinette explicites
+    var pietBilansM = sorted_mb.filter(function(v){ return ['PIETON','VELO','TROTTINETTE'].indexOf(v.type) >= 0 && v.pietBilan; })
+      .map(function(v){ return {DCD:'DCD',UA:'UA',UR:'UR'}[v.pietBilan] || ''; }).filter(Boolean);
+    if(pietBilansM.length > 0){
+      var bilanGrp = {};
+      pietBilansM.forEach(function(b){ bilanGrp[b] = (bilanGrp[b]||0)+1; });
+      var bilanStr = Object.keys(bilanGrp).map(function(b){ return bilanGrp[b]+' '+b; }).join(', ');
+      bits.push('bilan provisoire : ' + bilanStr);
+    } else {
+      var vict = buildVictimSummary(vehicles);
+      if(vict) bits.push('bilan provisoire : ' + vict.toLowerCase());
+    }
+
+    return bits.filter(Boolean).join(', ');
   }
 
   function currentReco(){
@@ -14217,6 +14376,55 @@ try{ refreshGlobalCards(); }catch(e){}
       });
     }
   };
+
+  /* ========================================================
+     PHOTOS SOUS LES MESSAGES RADIO
+     ======================================================== */
+  function renderPhotosBelowMessage(){
+    // Détermine quelles photos afficher selon le type actif
+    var type = window.state ? state.type : 'INC';
+    var photos = [];
+    if(type === 'AVP') photos = _avpPhotos || [];
+    else if(type === 'FDF') photos = _fdfPhotos || [];
+    else if(type === 'FEN') photos = _fenPhotos || [];
+    else photos = _incPhotos || [];
+
+    // Grilles à mettre à jour
+    var gridIds = ['mwPhotosGrid','rwPhotosGrid','rwAvpPhotosGrid'];
+    gridIds.forEach(function(id){
+      var grid = document.getElementById(id);
+      if(!grid) return;
+      grid.innerHTML = '';
+      if(!photos.length) return;
+      photos.forEach(function(p){
+        var img = document.createElement('img');
+        img.src = p.url;
+        img.style.cssText = 'width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:2px solid rgba(255,255,255,.15);';
+        grid.appendChild(img);
+      });
+    });
+  }
+
+  // Hooker renderPhotosBelowMessage dans chaque render photo existant
+  window.addEventListener('load', function(){
+    var origInc = window.incPhotoRender || function(){};
+    // Patch : appeler renderPhotosBelowMessage après chaque render
+    ['incPhotoRender','fdfPhotoRender','fenPhotoRender','avpPhotoRender'].forEach(function(fnName){
+      var orig = window[fnName];
+      if(typeof orig === 'function'){
+        window[fnName] = function(){
+          orig.apply(this, arguments);
+          renderPhotosBelowMessage();
+        };
+      }
+    });
+    // Aussi sur updatePreview pour sync initiale
+    var origUp = window.updatePreview;
+    window.updatePreview = function(){
+      if(typeof origUp === 'function') try{ origUp.apply(this,arguments); }catch(e){}
+      renderPhotosBelowMessage();
+    };
+  });
 
   /* ========================================================
      NAVIGATION HEADER PERMANENT

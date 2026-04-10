@@ -9630,7 +9630,7 @@ function buildAvpAmbianceJeVois(){
   // ── Bilan victimes ──
   // Collecter les bilans piéton/vélo/trottinette explicites
   const pietBilans = sorted
-    .filter(v => PIET_TYPES.includes(v.type) && v.pietBilan)
+    .filter(v => PIET_TYPES_M.includes(v.type) && v.pietBilan)
     .map(v => ({DCD:'DCD', UA:'UA', UR:'UR'}[v.pietBilan] || ''))
     .filter(Boolean);
 
@@ -14024,6 +14024,7 @@ try{ refreshGlobalCards(); }catch(e){}
       });
       inp.value = '';
       avpPhotoRender();
+      renderPhotosBelowMessage();
       // Mettre à jour le message radio AVP
       if(typeof updatePreview === 'function') updatePreview();
     });
@@ -14049,6 +14050,7 @@ try{ refreshGlobalCards(); }catch(e){}
         try { URL.revokeObjectURL(p.url); } catch(e){}
         _avpPhotos.splice(i, 1);
         avpPhotoRender();
+        renderPhotosBelowMessage();
         if(typeof updatePreview === 'function') updatePreview();
       };
       wrap.appendChild(img);
@@ -14062,22 +14064,8 @@ try{ refreshGlobalCards(); }catch(e){}
   // Exposer le nombre de photos pour le message radio
   window.avpPhotoCount = function(){ return _avpPhotos.length; };
 
-  // Afficher/masquer le panneau photo AVP selon le contexte
-  (function(){
-    var _origUpdatePreview = null;
-    window.addEventListener('load', function(){
-      _origUpdatePreview = window.updatePreview;
-      window.updatePreview = function(){
-        if(typeof _origUpdatePreview === 'function'){
-          try{ _origUpdatePreview.apply(this, arguments); }catch(e){}
-        }
-        avpPhotoSyncPanel();
-        avpPhotoInjectMsg();
-      };
-      // Render initial
-      avpPhotoRender();
-    });
-  })();
+  // Init render AVP photos
+  window.addEventListener('load', function(){ avpPhotoRender(); });
 
   function avpPhotoSyncPanel(){
     var card = document.getElementById('avpPhotoCard');
@@ -14150,6 +14138,7 @@ try{ refreshGlobalCards(); }catch(e){}
       });
       inp.value = '';
       incPhotoRender();
+      renderPhotosBelowMessage();
       if(typeof updatePreview === 'function') updatePreview();
     });
   });
@@ -14174,6 +14163,7 @@ try{ refreshGlobalCards(); }catch(e){}
         try { URL.revokeObjectURL(p.url); } catch(e){}
         _incPhotos.splice(i, 1);
         incPhotoRender();
+        renderPhotosBelowMessage();
         if(typeof updatePreview === 'function') updatePreview();
       };
       wrap.appendChild(img);
@@ -14185,20 +14175,7 @@ try{ refreshGlobalCards(); }catch(e){}
     if(shareWrap) shareWrap.style.display = _incPhotos.length ? 'block' : 'none';
   }
 
-  // Injecter le compteur photo INC dans le message radio
-  (function(){
-    var _incPhotoHooked = false;
-    window.addEventListener('load', function(){
-      if(_incPhotoHooked) return;
-      _incPhotoHooked = true;
-      var origUp = window.updatePreview;
-      window.updatePreview = function(){
-        if(typeof origUp === 'function'){ try{ origUp.apply(this,arguments); }catch(e){} }
-        incPhotoInjectMsg();
-      };
-      incPhotoRender();
-    });
-  })();
+  window.addEventListener('load', function(){ incPhotoRender(); });
 
   function incPhotoInjectMsg(){
     if(!_incPhotos.length) return;
@@ -14236,6 +14213,7 @@ try{ refreshGlobalCards(); }catch(e){}
       });
       inp.value = '';
       fdfPhotoRender();
+      renderPhotosBelowMessage();
       if(typeof updatePreview === 'function') updatePreview();
     });
   });
@@ -14259,6 +14237,7 @@ try{ refreshGlobalCards(); }catch(e){}
         try { URL.revokeObjectURL(p.url); } catch(e){}
         _fdfPhotos.splice(i, 1);
         fdfPhotoRender();
+        renderPhotosBelowMessage();
         if(typeof updatePreview === 'function') updatePreview();
       };
       wrap.appendChild(img); wrap.appendChild(del); grid.appendChild(wrap);
@@ -14267,20 +14246,7 @@ try{ refreshGlobalCards(); }catch(e){}
     if(shareWrap) shareWrap.style.display = _fdfPhotos.length ? 'block' : 'none';
   }
 
-  // Afficher/masquer le panneau FDF et injecter dans le message
-  (function(){
-    var _fdfHooked = false;
-    window.addEventListener('load', function(){
-      if(_fdfHooked) return; _fdfHooked = true;
-      var origUp = window.updatePreview;
-      window.updatePreview = function(){
-        if(typeof origUp === 'function'){ try{ origUp.apply(this,arguments); }catch(e){} }
-        fdfPhotoSyncPanel();
-        fdfPhotoInjectMsg();
-      };
-      fdfPhotoRender();
-    });
-  })();
+  window.addEventListener('load', function(){ fdfPhotoRender(); });
 
   function fdfPhotoSyncPanel(){
     // Le panneau est directement dans lieu_fdf, rien à gérer
@@ -14317,6 +14283,7 @@ try{ refreshGlobalCards(); }catch(e){}
       });
       inp.value = '';
       fenPhotoRender();
+      renderPhotosBelowMessage();
       if(typeof updatePreview === 'function') updatePreview();
     });
   });
@@ -14340,6 +14307,7 @@ try{ refreshGlobalCards(); }catch(e){}
         try { URL.revokeObjectURL(p.url); } catch(e){}
         _fenPhotos.splice(i, 1);
         fenPhotoRender();
+        renderPhotosBelowMessage();
         if(typeof updatePreview === 'function') updatePreview();
       };
       wrap.appendChild(img); wrap.appendChild(del); grid.appendChild(wrap);
@@ -14407,23 +14375,8 @@ try{ refreshGlobalCards(); }catch(e){}
 
   // Hooker renderPhotosBelowMessage dans chaque render photo existant
   window.addEventListener('load', function(){
-    var origInc = window.incPhotoRender || function(){};
-    // Patch : appeler renderPhotosBelowMessage après chaque render
-    ['incPhotoRender','fdfPhotoRender','fenPhotoRender','avpPhotoRender'].forEach(function(fnName){
-      var orig = window[fnName];
-      if(typeof orig === 'function'){
-        window[fnName] = function(){
-          orig.apply(this, arguments);
-          renderPhotosBelowMessage();
-        };
-      }
-    });
-    // Aussi sur updatePreview pour sync initiale
-    var origUp = window.updatePreview;
-    window.updatePreview = function(){
-      if(typeof origUp === 'function') try{ origUp.apply(this,arguments); }catch(e){}
-      renderPhotosBelowMessage();
-    };
+    // Appel initial
+    renderPhotosBelowMessage();
   });
 
   /* ========================================================

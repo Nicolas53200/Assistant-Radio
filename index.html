@@ -1336,12 +1336,22 @@ section.card[data-card="photosInterv"]{
     <div class="mob-card">
       <div class="mob-card-title">Saisir l'alerte</div>
       <button class="btn primary" style="min-height:60px;font-size:19px;" onclick="document.getElementById('btnScanQR').click()">📷 Scanner QR Code</button>
+
+      <!-- Bouton scanner feuille CODIS -->
+      <button class="btn" id="btnScanFeuille" type="button" onclick="scanFeuilleCODIS()" style="width:100%;min-height:58px;font-size:17px;font-weight:900;border:2px solid rgba(255,255,255,.3);background:#0d1420;color:#fff;border-radius:16px;margin-top:4px;">
+        📄 Scanner la feuille CODIS
+      </button>
+      <input id="scanFeuilleInput" type="file" accept="image/*" capture="environment" hidden />
+      <div id="scanFeuilleStatus" style="display:none;text-align:center;font-size:14px;opacity:.7;padding:6px 0;">⏳ Analyse en cours…</div>
+
       <label>Adresse intervention</label>
       <input id="mf_adr" placeholder="ex : 12 rue… / commune" oninput="mfSync('adresse',this.value)"/>
       <label>Motif de départ</label>
       <input id="mf_mot" placeholder="ex : feu d'habitation…" oninput="mfSync('motif',this.value)"/>
       <label>Engins engagés</label>
       <input id="mf_eng" placeholder="ex : FPT, VSAV, VSR…" oninput="mfSync('engins',this.value)"/>
+      <label>N° intervention</label>
+      <input id="mf_numinter" placeholder="ex : 5142" oninput="if(window.state)state.numIntervention=this.value;"/>
     </div>
     <div class="mob-card">
       <div class="mob-card-title">Position GPS</div>
@@ -1676,6 +1686,9 @@ section.card[data-card="photosInterv"]{
         <button class="btn" style="flex:1;min-height:54px;" onclick="rwCopy()">📋 Copier</button>
         <button class="btn primary" style="flex:1;min-height:54px;" onclick="rwArchive()">🗂 Archiver</button>
       </div>
+      <button type="button" onclick="ouvrirRapportIntervention()" style="width:100%;min-height:52px;border-radius:16px;border:2px solid rgba(255,255,255,.3);background:#0d1420;color:#fff;font-size:16px;font-weight:900;cursor:pointer;margin-top:10px;">
+        📝 Rapport d'intervention
+      </button>
     </div>
   </div>
 
@@ -15278,6 +15291,258 @@ try{ refreshGlobalCards(); }catch(e){}
     </div>
   </div>
 </div>
+
+<script>
+/* ===== SCANNER FEUILLE CODIS ===== */
+window.scanFeuilleCODIS = function(){
+  var inp = document.getElementById('scanFeuilleInput');
+  if(inp) inp.click();
+};
+
+window.addEventListener('load', function(){
+  var inp = document.getElementById('scanFeuilleInput');
+  if(!inp) return;
+  inp.addEventListener('change', function(){
+    var file = inp.files && inp.files[0];
+    if(!file) return;
+    inp.value = '';
+
+    var status = document.getElementById('scanFeuilleStatus');
+    var btn = document.getElementById('btnScanFeuille');
+    if(status){ status.style.display='block'; status.textContent='⏳ Analyse en cours…'; }
+    if(btn){ btn.disabled=true; btn.style.opacity='0.5'; }
+
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var base64 = e.target.result.split(',')[1];
+      var mediaType = file.type || 'image/jpeg';
+
+      fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 500,
+          messages: [{
+            role: 'user',
+            content: [
+              { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 } },
+              { type: 'text', text: 'Analyse cette feuille de départ de sapeurs-pompiers et extrais exactement ces informations en JSON uniquement, sans markdown ni texte autour :\n{\n  "adresse": "numéro + rue + commune (ex: 61 Résidence du Louvre Château-Gontier-sur-Mayenne)",\n  "motif": "nature de l\'intervention (ex: Accident routier avec piégé/incarcéré)",\n  "engins": "liste des engins engagés séparés par des virgules (ex: VSRM 30, VSAV 52, CCRSR 57)",\n  "numIntervention": "numéro d\'intervention (ex: 5142)"\n}\nSi une information est absente, mettre "". Retourne UNIQUEMENT le JSON, rien d\'autre.' }
+            ]
+          }]
+        })
+      })
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        var text = (data.content && data.content[0] && data.content[0].text) || '';
+        text = text.replace(/```json|```/g,'').trim();
+        var parsed; try{ parsed = JSON.parse(text); } catch(e){ parsed = null; }
+
+        if(parsed){
+          if(parsed.adresse){ var a=document.getElementById('mf_adr'); if(a){a.value=parsed.adresse;a.dispatchEvent(new Event('input',{bubbles:true}));} }
+          if(parsed.motif){ var m=document.getElementById('mf_mot'); if(m){m.value=parsed.motif;m.dispatchEvent(new Event('input',{bubbles:true}));} }
+          if(parsed.engins){ var eg=document.getElementById('mf_eng'); if(eg){eg.value=parsed.engins;eg.dispatchEvent(new Event('input',{bubbles:true}));} }
+          if(parsed.numIntervention){ var ni=document.getElementById('mf_numinter'); if(ni){ni.value=parsed.numIntervention;if(window.state)state.numIntervention=parsed.numIntervention;} }
+          if(status){ status.textContent='✅ Feuille analysée avec succès !'; }
+          setTimeout(function(){ if(status) status.style.display='none'; },3000);
+        } else {
+          if(status){ status.textContent='❌ Impossible d\'extraire les données. Remplis manuellement.'; }
+          setTimeout(function(){ if(status) status.style.display='none'; },4000);
+        }
+      })
+      .catch(function(){
+        if(status){ status.textContent='❌ Erreur réseau. Remplis manuellement.'; }
+        setTimeout(function(){ if(status) status.style.display='none'; },4000);
+      })
+      .finally(function(){ if(btn){btn.disabled=false;btn.style.opacity='1';} });
+    };
+    reader.readAsDataURL(file);
+  });
+});
+</script>
+
+<!-- ===== RAPPORT D'INTERVENTION ===== -->
+<div id="rapportOverlay" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.88);align-items:flex-end;justify-content:center;overflow:hidden;" onclick="if(event.target===this)fermerRapport()">
+  <div style="background:#0d1420;border-radius:24px 24px 0 0;width:100%;max-width:640px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;border-top:4px solid var(--accent);">
+    <!-- Header -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:2px solid rgba(255,255,255,.1);flex-shrink:0;">
+      <div style="font-size:17px;font-weight:900;">📝 Rapport d'intervention</div>
+      <div style="display:flex;gap:8px;">
+        <button onclick="partagerRapport()" style="background:var(--accent);border:none;color:#fff;font-size:14px;font-weight:900;padding:8px 14px;border-radius:10px;cursor:pointer;">↗️ Partager</button>
+        <button onclick="fermerRapport()" style="background:rgba(255,255,255,.1);border:none;color:#fff;font-size:18px;width:36px;height:36px;border-radius:50%;cursor:pointer;">✕</button>
+      </div>
+    </div>
+    <!-- Contenu scrollable -->
+    <div style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:14px;">
+
+      <!-- Infos intervention -->
+      <div style="background:#070b14;border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,.1);">
+        <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;opacity:.6;margin-bottom:10px;">Identification</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <label style="font-size:11px;opacity:.6;display:block;margin-bottom:3px;">N° intervention</label>
+            <div id="rapNumInter" style="font-size:15px;font-weight:900;min-height:20px;">—</div>
+          </div>
+          <div>
+            <label style="font-size:11px;opacity:.6;display:block;margin-bottom:3px;">Type</label>
+            <div id="rapType" style="font-size:15px;font-weight:900;min-height:20px;">—</div>
+          </div>
+        </div>
+        <div style="margin-top:10px;">
+          <label style="font-size:11px;opacity:.6;display:block;margin-bottom:3px;">Adresse</label>
+          <div id="rapAdresse" style="font-size:15px;font-weight:900;min-height:20px;">—</div>
+        </div>
+        <div style="margin-top:10px;">
+          <label style="font-size:11px;opacity:.6;display:block;margin-bottom:3px;">Motif</label>
+          <div id="rapMotif" style="font-size:15px;font-weight:900;min-height:20px;">—</div>
+        </div>
+        <div style="margin-top:10px;">
+          <label style="font-size:11px;opacity:.6;display:block;margin-bottom:3px;">Engins engagés</label>
+          <div id="rapEngins" style="font-size:15px;font-weight:900;min-height:20px;">—</div>
+        </div>
+      </div>
+
+      <!-- Résumé des messages radio -->
+      <div style="background:#070b14;border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,.1);">
+        <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;opacity:.6;margin-bottom:10px;">Chronologie radio</div>
+        <div id="rapMessages" style="font-size:13px;line-height:1.6;white-space:pre-wrap;opacity:.9;">—</div>
+      </div>
+
+      <!-- Pavé libre -->
+      <div style="background:#070b14;border-radius:14px;padding:14px;border:1px solid rgba(255,255,255,.1);">
+        <div style="font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.07em;opacity:.6;margin-bottom:10px;">Observations / Compléments</div>
+        <textarea id="rapNotes" rows="6" placeholder="Actions menées, difficultés rencontrées, matériel utilisé, contacts sur place, suites à donner…" style="width:100%;background:#0d1420;border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:10px;color:#fff;font-size:14px;line-height:1.5;resize:vertical;box-sizing:border-box;"></textarea>
+      </div>
+
+      <!-- Date/heure auto -->
+      <div style="font-size:12px;opacity:.4;text-align:center;" id="rapDateTime"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== RAPPORT D'INTERVENTION ===== */
+window.ouvrirRapportIntervention = function(){
+  var overlay = document.getElementById('rapportOverlay');
+  if(!overlay) return;
+  overlay.style.display = 'flex';
+
+  // N° intervention
+  var numEl = document.getElementById('rapNumInter');
+  var num = document.getElementById('mf_numinter');
+  var numVal = (num && num.value.trim()) || (window.state && state.numIntervention) || '—';
+  if(numEl) numEl.textContent = numVal;
+
+  // Type
+  var typeEl = document.getElementById('rapType');
+  var typeLabels2 = {INC:'Incendie',FEN:'Feu espace naturel',FDF:'Feu de forêt',AVP:'Accident voie publique'};
+  if(typeEl) typeEl.textContent = (window.state && typeLabels2[state.type]) || '—';
+
+  // Adresse
+  var adrEl = document.getElementById('rapAdresse');
+  var adrVal = (document.getElementById('mf_adr') && document.getElementById('mf_adr').value.trim())
+            || (window.state && state.departAdresse) || '—';
+  if(adrEl) adrEl.textContent = adrVal;
+
+  // Motif
+  var motEl = document.getElementById('rapMotif');
+  var motVal = (document.getElementById('mf_mot') && document.getElementById('mf_mot').value.trim())
+            || (window.state && state.departMotif) || '—';
+  if(motEl) motEl.textContent = motVal;
+
+  // Engins
+  var engEl = document.getElementById('rapEngins');
+  var engVal = (document.getElementById('mf_eng') && document.getElementById('mf_eng').value.trim())
+            || (window.state && state.departEngins) || '—';
+  if(engEl) engEl.textContent = engVal;
+
+  // Messages radio depuis l'historique localStorage
+  var msgEl = document.getElementById('rapMessages');
+  if(msgEl){
+    try{
+      var KEY = 'radio_sp_msg_history_v1';
+      var items = JSON.parse(localStorage.getItem(KEY)||'[]');
+      // Garder les messages de la session en cours (dernière heure)
+      var cutoff = Date.now() - 3600000;
+      var recent = items.filter(function(it){ return it.ts && it.ts > cutoff; });
+      if(recent.length > 0){
+        var lines = recent.map(function(it, i){
+          var d = new Date(it.ts);
+          var hm = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+          var label = it.tab === 'transit' ? 'Transit' : it.tab === 'renseignement' ? 'Rens. T+15' : 'Ambiance T+5';
+          return '['+ hm +'] '+ label +'\n'+ (it.text||'').trim();
+        });
+        msgEl.textContent = lines.join('\n\n');
+      } else if(items.length > 0){
+        // Fallback : derniers messages disponibles
+        var last = items.slice(0,5).map(function(it){
+          var d = new Date(it.ts);
+          var hm = String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+          return '['+hm+'] '+(it.text||'').trim();
+        });
+        msgEl.textContent = last.join('\n\n');
+      } else {
+        msgEl.textContent = 'Aucun message archivé pour cette intervention.';
+      }
+    } catch(e){
+      msgEl.textContent = 'Historique indisponible.';
+    }
+  }
+
+  // Date/heure
+  var dtEl = document.getElementById('rapDateTime');
+  if(dtEl){
+    var now = new Date();
+    dtEl.textContent = 'Rapport généré le ' + now.toLocaleDateString('fr-FR') + ' à ' + String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
+  }
+};
+
+window.fermerRapport = function(){
+  var overlay = document.getElementById('rapportOverlay');
+  if(overlay) overlay.style.display = 'none';
+};
+
+window.partagerRapport = function(){
+  var numEl = document.getElementById('rapNumInter');
+  var typeEl = document.getElementById('rapType');
+  var adrEl = document.getElementById('rapAdresse');
+  var motEl = document.getElementById('rapMotif');
+  var engEl = document.getElementById('rapEngins');
+  var msgEl = document.getElementById('rapMessages');
+  var notesEl = document.getElementById('rapNotes');
+  var dtEl = document.getElementById('rapDateTime');
+
+  var txt = '📝 RAPPORT D\'INTERVENTION\n';
+  txt += '═══════════════════════\n';
+  txt += 'N° intervention : ' + (numEl && numEl.textContent || '—') + '\n';
+  txt += 'Type : ' + (typeEl && typeEl.textContent || '—') + '\n';
+  txt += 'Adresse : ' + (adrEl && adrEl.textContent || '—') + '\n';
+  txt += 'Motif : ' + (motEl && motEl.textContent || '—') + '\n';
+  txt += 'Engins : ' + (engEl && engEl.textContent || '—') + '\n';
+  txt += '\n── CHRONOLOGIE RADIO ──\n';
+  txt += (msgEl && msgEl.textContent || '—') + '\n';
+  if(notesEl && notesEl.value.trim()){
+    txt += '\n── OBSERVATIONS ──\n';
+    txt += notesEl.value.trim() + '\n';
+  }
+  txt += '\n' + (dtEl && dtEl.textContent || '');
+
+  if(navigator.share){ navigator.share({ text: txt }); }
+  else {
+    // Copie dans le presse-papiers
+    try{
+      navigator.clipboard.writeText(txt).then(function(){
+        alert('Rapport copié dans le presse-papiers');
+      });
+    } catch(e){
+      var ta = document.createElement('textarea');
+      ta.value = txt; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+      alert('Rapport copié !');
+    }
+  }
+};
+</script>
 
 </body>
 </html>

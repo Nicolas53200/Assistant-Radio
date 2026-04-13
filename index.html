@@ -2845,6 +2845,29 @@ section.card[data-card="photosInterv"]{
         </div>
 
 
+        <!-- Panneau Cheminée -->
+        <div id="lieu_cheminee" class="lieu-panel" hidden>
+          <div class="section-title">Feu de cheminée — Type d'appareil</div>
+          <div class="chips center" id="chemineAppareilChips">
+            <button class="chip" type="button" data-chip="Foyer ouvert">🔥 Foyer ouvert</button>
+            <button class="chip" type="button" data-chip="Insert">🪵 Insert</button>
+            <button class="chip" type="button" data-chip="Poêle à bois">🪵 Poêle à bois</button>
+            <button class="chip" type="button" data-chip="Poêle à granulé">🌾 Poêle à granulé</button>
+            <button class="chip" type="button" data-chip="Poêle mixte">🔄 Poêle mixte</button>
+            <button class="chip" type="button" data-chip="Conduit tubé">🧱 Conduit tubé</button>
+            <button class="chip" type="button" data-chip="Conduit non tubé">⚠️ Conduit non tubé</button>
+          </div>
+
+          <div class="section-title" style="margin-top:14px;">Symptômes observés</div>
+          <div class="chips center" id="chemineSymptomesChips">
+            <button class="chip" type="button" data-chip="Flamme sortant par la tête de cheminée">🔥 Flamme en tête de cheminée</button>
+            <button class="chip" type="button" data-chip="Ronflement anormal dans le conduit">🔊 Ronflement anormal</button>
+            <button class="chip" type="button" data-chip="Fumée importante dans le conduit">💨 Fumée importante conduit</button>
+            <button class="chip" type="button" data-chip="Présence de fumée dans le logement">🏠 Fumée dans le logement</button>
+            <button class="chip" type="button" data-chip="Explosion">💥 Explosion</button>
+          </div>
+        </div>
+
         <div id="lieu_fen" class="lieu-panel" hidden>
   <div class="section-title">FEN — Mode Terrain (assistant)</div>
 
@@ -3647,6 +3670,9 @@ const state = {
   plTmdDanger: "", // PL TMD : code danger
   plTmdMatter: "", // PL TMD : code matière
 
+  chemineAppareil: new Set(), // Foyer ouvert / Insert / Poêle à bois...
+  chemineSymptomes: new Set(), // Flamme en tête / Ronflement / Fumée...
+
   poubelleType: "", // Poubelle (sous-type)
 
   photos: [] ,// { id:number, file?:File, blob?:Blob, url:string, name?:string, type?:string, ts?:number },
@@ -4107,6 +4133,7 @@ updateIncStepUI();
       "Agricole",
       "Magasin",
       "ERP",
+      "Cheminée",
       "VL",
       "PL",
       "Cave",
@@ -4138,6 +4165,7 @@ updateIncStepUI();
     "Agricole",
     "Magasin",
     "ERP",
+    "Cheminée",
     "VL",
     "PL",
     "Cave",
@@ -4764,6 +4792,19 @@ if (state.incTypeLieu === "Pavillon") { const p = $("#lieu_pavillon"); if (p) p.
   if (state.incTypeLieu === "FDF") {
     const f = $("#lieu_fdf");
     if (f) f.hidden = false;
+  }
+
+  if (state.incTypeLieu === "Cheminée") {
+    const ch = $("#lieu_cheminee");
+    if (ch) ch.hidden = false;
+    // Sync chips appareil (multi)
+    document.querySelectorAll('#chemineAppareilChips .chip').forEach(b => {
+      b.classList.toggle('active', state.chemineAppareil && state.chemineAppareil.has(b.dataset.chip));
+    });
+    // Sync chips symptomes (multi)
+    document.querySelectorAll('#chemineSymptomesChips .chip').forEach(b => {
+      b.classList.toggle('active', state.chemineSymptomes && state.chemineSymptomes.has(b.dataset.chip));
+    });
   }
 
   if (state.incTypeLieu === "Electrique") {
@@ -6777,6 +6818,25 @@ wireChipGroup("#poubelleChips", (btn, v) => {
   wireGazChip("gazPerimetreChips", () => state.gazPerimetre, v => { state.gazPerimetre = v; });
   wireGazChip("gazPgrChips",       () => state.gazPgr,       v => { state.gazPgr = v; });
   wireGazChip("gazTypeChips",      () => state.gazType,      v => { state.gazType = v; });
+
+  // Wiring chips cheminée (multi-sélection)
+  function wireChemineMulti(id, stateKey) {
+    const c = document.getElementById(id);
+    if (!c) return;
+    c.addEventListener("click", e => {
+      const btn = e.target.closest("button.chip");
+      if (!btn) return;
+      const v = btn.dataset.chip || "";
+      // Lire dynamiquement depuis state pour gérer les resets
+      if (!state[stateKey] || !(state[stateKey] instanceof Set)) state[stateKey] = new Set();
+      const setRef = state[stateKey];
+      if (setRef.has(v)) { setRef.delete(v); btn.classList.remove('active'); }
+      else { setRef.add(v); btn.classList.add('active'); }
+      updatePreview && updatePreview();
+    });
+  }
+  wireChemineMulti("chemineAppareilChips",  "chemineAppareil");
+  wireChemineMulti("chemineSymptomesChips", "chemineSymptomes");
 })();
 
 
@@ -7909,6 +7969,46 @@ if (state.incTypeLieu === "FEN"){
   }
 
   // Détails Electrique
+  if (state.incTypeLieu === "Cheminée") {
+    bits.length = 0;
+    // Lire dynamiquement (en cas de reset du Set)
+    const appSet = (state.chemineAppareil instanceof Set) ? state.chemineAppareil : new Set();
+    const sympSet = (state.chemineSymptomes instanceof Set) ? state.chemineSymptomes : new Set();
+    const appareils = [...appSet];
+    const symptomes = [...sympSet];
+
+    // Séparer les appareils en type de foyer et type de conduit
+    const typesConduit = ["Conduit tubé", "Conduit non tubé"];
+    const typesFoyer   = appareils.filter(a => !typesConduit.includes(a));
+    const conduits     = appareils.filter(a => typesConduit.includes(a));
+
+    // Phrase de base : "feu de cheminée, foyer ouvert avec un conduit tubé"
+    let txt = "feu de cheminée";
+    if (typesFoyer.length > 0) {
+      txt += ", " + typesFoyer.map(a => a.toLowerCase()).join(" / ");
+    }
+    if (conduits.length > 0) {
+      const condStr = conduits.map(c => c.toLowerCase()).join(" et ");
+      txt += " avec " + (conduits.length === 1 ? "un " : "") + condStr;
+    }
+    bits.push(txt);
+
+    // Symptômes — phrases conjuguées au présent
+    const sympMap = {
+      "Flamme sortant par la tête de cheminée":  "des flammes sortent par la tête de cheminée",
+      "Ronflement anormal dans le conduit":       "ronflement anormal dans le conduit",
+      "Fumée importante dans le conduit":         "fumée importante se dégageant du conduit",
+      "Présence de fumée dans le logement":       "présence de fumée dans le logement",
+      "Explosion":                                "explosion signalée"
+    };
+    const sympPhrases = symptomes.map(s => sympMap[s] || s.toLowerCase()).filter(Boolean);
+    if (sympPhrases.length === 1) {
+      bits.push(sympPhrases[0]);
+    } else if (sympPhrases.length > 1) {
+      bits.push(sympPhrases.slice(0, -1).join(", ") + " et " + sympPhrases[sympPhrases.length - 1]);
+    }
+  }
+
   if (state.incTypeLieu === "Electrique"){
     bits.length = 0;
     const elecType = (state.electriqueType || "").trim();
@@ -14610,6 +14710,8 @@ try{ refreshGlobalCards(); }catch(e){}
     state.electriqueAutre = '';
     state.electriqueTransfoPoste = '';
     state.electriqueBTType = '';
+    state.chemineAppareil = new Set();
+    state.chemineSymptomes = new Set();
     state.gazEvacuation = 0;
     state.lieuEvac = {};
     state.lieuConf = {};

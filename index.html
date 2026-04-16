@@ -1684,7 +1684,7 @@ section.card[data-card="photosInterv"]{
       <div id="rwPhotosGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;"></div>
       <div style="display:flex;gap:10px;margin-top:12px;">
         <button class="btn" style="flex:1;min-height:54px;" onclick="rwCopy()">📋 Copier</button>
-        <button class="btn primary" style="flex:1;min-height:54px;" onclick="rwArchive()">🗂 Archiver</button>
+        <button class="btn primary" style="flex:1;min-height:54px;" onclick="rwArchive(this)">🗂 Archiver</button>
       </div>
       <button type="button" onclick="ouvrirRapportIntervention()" style="width:100%;min-height:52px;border-radius:16px;border:2px solid rgba(255,255,255,.3);background:#0d1420;color:#fff;font-size:16px;font-weight:900;cursor:pointer;margin-top:10px;">
         📝 Rapport d'intervention
@@ -1752,8 +1752,11 @@ section.card[data-card="photosInterv"]{
       <div id="rwAvpPhotosGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px;"></div>
       <div style="display:flex;gap:10px;margin-top:12px;">
         <button class="btn" style="flex:1;min-height:54px;" onclick="rwAvpCopy()">📋 Copier</button>
-        <button class="btn primary" style="flex:1;min-height:54px;" onclick="rwArchive()">🗂 Archiver</button>
+        <button class="btn primary" style="flex:1;min-height:54px;" onclick="rwArchive(this)">🗂 Archiver</button>
       </div>
+      <button type="button" onclick="ouvrirRapportIntervention()" style="width:100%;min-height:52px;border-radius:16px;border:2px solid rgba(255,255,255,.3);background:#0d1420;color:#fff;font-size:16px;font-weight:900;cursor:pointer;margin-top:10px;">
+        📝 Rapport d'intervention
+      </button>
       <div id="rwAvpMultiButtons"></div>
     </div>
   </div>
@@ -2173,6 +2176,13 @@ section.card[data-card="photosInterv"]{
               <button class="chip" type="button" data-traffic="BLOQUEE">Bloquée</button>
               <button class="chip" type="button" data-traffic="UNE_VOIE">Sur une seule voie</button>
             </div>
+          </div>
+        </div>
+        <div style="margin-top:14px;">
+          <div class="card-title">Sur les lieux</div>
+          <div class="chips center" id="avpSllChips">
+            <button class="chip" type="button" id="avpPoliceSLLBtn" data-sll="POLICE">🚔 Forces de l'ordre</button>
+            <button class="chip" type="button" id="avpRoutesSLLBtn" data-sll="ROUTES">🚧 Service des routes</button>
           </div>
         </div>
       </section>
@@ -3563,6 +3573,7 @@ const state = {
   avpDesinc: "",
   avpPoliceSLL: false,
   avpPoliceSite: false,
+  avpRoutesSLL: false,
 
   incNature: "",
   incNatureOther: "",
@@ -6501,7 +6512,14 @@ function renderAgricoleDetails(){
       row.style.padding = "10px";
       row.style.marginTop = "10px";
       row.innerHTML = `
-        <div style="font-weight:700; margin-bottom:6px;">Victime ${i+1}</div>
+        <div style="font-weight:700; margin-bottom:8px;">Victime ${i+1}</div>
+        <div style="margin-bottom:10px;">
+          <div class="subcard-title" style="margin-bottom:6px;">Conscience</div>
+          <div class="chips center" id="incVictConsChips_${i}">
+            <button class="chip" type="button" data-vict-cons="CONSCIENTE">😌 Consciente</button>
+            <button class="chip" type="button" data-vict-cons="INCONSCIENTE">😶 Inconsciente</button>
+          </div>
+        </div>
         <div class="grid2">
           <div>
             <label>Action</label>
@@ -6522,6 +6540,20 @@ function renderAgricoleDetails(){
         </div>
       `;
       victList.appendChild(row);
+
+      // Sync conscience chips
+      const consChips = row.querySelectorAll('[data-vict-cons]');
+      const currentCons = (state.appVictims[i] && state.appVictims[i].cons) || "";
+      consChips.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.victCons === currentCons);
+        btn.addEventListener('click', () => {
+          if (!state.appVictims[i]) state.appVictims[i] = { act: '', stat: '', cons: '' };
+          state.appVictims[i].cons = state.appVictims[i].cons === btn.dataset.victCons ? '' : btn.dataset.victCons;
+          consChips.forEach(b => b.classList.toggle('active', b.dataset.victCons === state.appVictims[i].cons));
+          if (typeof syncAmbianceVictimsToRens === "function") syncAmbianceVictimsToRens(false);
+          updatePreview && updatePreview();
+        });
+      });
 
       const actSel = row.querySelector('select[data-vict-field="act"]');
       const statSel = row.querySelector('select[data-vict-field="stat"]');
@@ -7586,7 +7618,6 @@ function formatVictimesPhrase(n, arr){
     return "victime(s) à confirmer";
   }
 
-  // Collect actions with status "EN_COURS" if present; otherwise any status.
   const victims = Array.isArray(arr) ? arr : [];
   const mapAct = (act) => {
     const a = (act || "").toUpperCase().trim();
@@ -7596,30 +7627,46 @@ function formatVictimesPhrase(n, arr){
     return "";
   };
 
-  // Prefer "EN_COURS"
-  let actionsSet = new Set();
-  let anyEnCours = false;
-  for (let i=0;i<nb;i++){
-    const v = victims[i] || {};
-    const stat = (v.stat || "").toUpperCase().trim();
+  // Cas 1 victime : phrase détaillée avec conscience
+  if (nb === 1) {
+    const v = victims[0] || {};
     const actLabel = mapAct(v.act);
-    if (stat === "EN_COURS") anyEnCours = true;
+    const cons = (v.cons || "").toUpperCase();
+    const statLabel = (v.stat || "").toUpperCase() === "REALISE" ? "réalisé" : "en cours";
+    const consPart = cons === "CONSCIENTE" ? "consciente" : cons === "INCONSCIENTE" ? "inconsciente" : "";
+
+    let phrase = "1 victime";
+    if (consPart) phrase += `, ${consPart}`;
+    if (actLabel) phrase += `, ${actLabel} ${statLabel}`;
+    else phrase += " en cours de prise en charge";
+    return phrase;
+  }
+
+  // Plusieurs victimes : grouper par conscience si renseignée
+  let actionsSet = new Set();
+  let nbConscientes = 0, nbInconscientes = 0;
+  for (let i = 0; i < nb; i++){
+    const v = victims[i] || {};
+    const actLabel = mapAct(v.act);
     if (actLabel) actionsSet.add(actLabel);
+    const cons = (v.cons || "").toUpperCase();
+    if (cons === "CONSCIENTE") nbConscientes++;
+    else if (cons === "INCONSCIENTE") nbInconscientes++;
   }
 
-  // If we have actions but no one is "EN_COURS", we still keep wording "en cours"
-  // unless you later want "réalisé".
   const actions = Array.from(actionsSet.values());
+  let phrase = `${nb} victimes`;
 
-  if (actions.length){
-    const actTxt = actions.join(" et ");
-    if (nb === 1) return `1 victime, ${actTxt} en cours`;
-    return `${nb} victimes, ${actTxt} en cours`;
-  }
+  // Ajouter conscience si au moins une est renseignée
+  const consParts = [];
+  if (nbInconscientes > 0) consParts.push(`${nbInconscientes} inconsciente${nbInconscientes > 1 ? 's' : ''}`);
+  if (nbConscientes > 0)   consParts.push(`${nbConscientes} consciente${nbConscientes > 1 ? 's' : ''}`);
+  if (consParts.length)    phrase += ` dont ${consParts.join(', ')}`;
 
-  // No action specified
-  if (nb === 1) return "1 victime en cours de prise en charge";
-  return `${nb} victimes en cours de prise en charge`;
+  if (actions.length) phrase += `, ${actions.join(' et ')} en cours`;
+  else phrase += " en cours de prise en charge";
+
+  return phrase;
 }
 
 
@@ -8107,6 +8154,14 @@ if (state.incTypeLieu === "FEN"){
       return;
     }
 
+    // Compter consciente / inconsciente
+    let nbConsc = 0, nbInconsc = 0;
+    list.forEach(vv => {
+      const c = norm(vv.cons || "");
+      if (c === "CONSCIENTE") nbConsc++;
+      else if (c === "INCONSCIENTE") nbInconsc++;
+    });
+
     // Regroupement par (act, stat)
     const groups = new Map();
     list.forEach(vv=>{
@@ -8165,7 +8220,19 @@ if (state.incTypeLieu === "FEN"){
       return action ? (c === 1 ? `${action} d'une victime${statSuffix}` : `${action} de ${c} victimes${statSuffix}`) : nVict(c);
     });
 
-    bits.push(phrases.filter(Boolean).join(" et "));
+    const phrasesParts = phrases.filter(Boolean);
+    let victPhrase = phrasesParts.join(" et ");
+
+    // Ajouter conscience si au moins une renseignée
+    const consParts = [];
+    if (nbInconsc > 0) consParts.push(`${nbInconsc} inconsciente${nbInconsc > 1 ? 's' : ''}`);
+    if (nbConsc > 0)   consParts.push(`${nbConsc} consciente${nbConsc > 1 ? 's' : ''}`);
+    if (consParts.length) {
+      const consStr = consParts.join(', ');
+      victPhrase = victPhrase ? `${victPhrase} (${consStr})` : consStr;
+    }
+
+    bits.push(victPhrase || (n === 1 ? "1 victime" : `${n} victimes`));
   })();
 
   if (state.incTypeLieu === "VL" && state.vlPerimetre){
@@ -9587,22 +9654,42 @@ function buildAvpAmbianceActionLine(){
     const traffic = buildAvpTrafficLabel(state.avpTraffic);
     if (traffic) bits.push(traffic);
   }
+  if (state.avpPoliceSLL) bits.push(`Forces de l'ordre sur les lieux`);
+  if (state.avpRoutesSLL) bits.push(`Service des routes sur les lieux`);
   return bits.join(' — ');
 }
 
 function buildAvpRensJeFais(){
   ensureAvpActionState();
   const bits = [];
-  if (state.avpSiteSec){
-    const status = avpActionStatusLabel(state.avpSiteSec);
-    if (status) bits.push(`Sécurisation du site ${status}`);
+
+  // Sécurisation du site — si les FDO assurent le site, on fusionne tout en une phrase
+  const secStatus = avpActionStatusLabel(state.avpSiteSec);
+  if (state.avpPoliceSite) {
+    // FDO assurent la sécurisation → phrase unique, pas de doublon avec avpSiteSec
+    bits.push(`Sécurisation du site assurée par les forces de l'ordre`);
+  } else if (secStatus) {
+    bits.push(`Sécurisation du site ${secStatus}`);
   }
-  if (state.avpDesinc){
+
+  // Désincarcération — uniquement si pas déjà dans le bilan victime
+  // On l'inclut ici seulement si buildRensVictimesSummary ne la mentionne pas déjà
+  const victSum = (typeof buildRensVictimesSummary === "function") ? buildRensVictimesSummary() : "";
+  const desincAlreadyInVict = victSum.toLowerCase().includes("désincarcération");
+  if (state.avpDesinc && !desincAlreadyInVict) {
     const status = avpActionStatusLabel(state.avpDesinc);
     if (status) bits.push(`Désincarcération ${status}`);
   }
-  if (state.avpPoliceSLL) bits.push(`Forces de l'ordre sur les lieux`);
-  if (state.avpPoliceSite) bits.push(`Sécurisation du site assurée par les forces de l'ordre`);
+
+  // FDO sur les lieux (sans sécurisation du site)
+  if (state.avpPoliceSLL && !state.avpPoliceSite) {
+    bits.push(`Forces de l'ordre sur les lieux`);
+  }
+  // Service des routes
+  if (state.avpRoutesSLL) {
+    bits.push(`Service des routes sur les lieux`);
+  }
+
   return bits.join('. ');
 }
 
@@ -9628,6 +9715,8 @@ function renderAvpActionCards(){
   if (sllBtn) sllBtn.classList.toggle("active", !!state.avpPoliceSLL);
   const siteBtn = document.getElementById("avpPoliceSiteBtn");
   if (siteBtn) siteBtn.classList.toggle("active", !!state.avpPoliceSite);
+  const routesBtn = document.getElementById("avpRoutesSLLBtn");
+  if (routesBtn) routesBtn.classList.toggle("active", !!state.avpRoutesSLL);
 }
 
 function wireAvpActionCards(){
@@ -9638,15 +9727,17 @@ function wireAvpActionCards(){
   document.documentElement.dataset.avpActionCardsBound = "1";
 
   document.addEventListener("click", (e) => {
-    const btn = e.target.closest("#avpSiteSecChipsAmb button[data-value], #avpSiteSecChipsRens button[data-value], #avpDesincChipsRens button[data-value], #avpTrafficChipsAmb button[data-traffic], #avpPoliceSLLBtn, #avpPoliceSiteBtn");
+    const btn = e.target.closest("#avpSiteSecChipsAmb button[data-value], #avpSiteSecChipsRens button[data-value], #avpDesincChipsRens button[data-value], #avpTrafficChipsAmb button[data-traffic], #avpPoliceSLLBtn, #avpPoliceSiteBtn, #avpRoutesSLLBtn, #avpSllChips button[data-sll]");
     if (!btn) return;
 
     ensureAvpActionState();
 
-    if (btn.id === "avpPoliceSLLBtn") {
+    if (btn.id === "avpPoliceSLLBtn" || btn.dataset.sll === "POLICE") {
       state.avpPoliceSLL = !state.avpPoliceSLL;
     } else if (btn.id === "avpPoliceSiteBtn") {
       state.avpPoliceSite = !state.avpPoliceSite;
+    } else if (btn.id === "avpRoutesSLLBtn" || btn.dataset.sll === "ROUTES") {
+      state.avpRoutesSLL = !state.avpRoutesSLL;
     } else if (btn.dataset.traffic != null) {
       state.avpTraffic = (state.avpTraffic === btn.dataset.traffic) ? "" : btn.dataset.traffic;
     } else {
@@ -9693,7 +9784,7 @@ function buildAvpAmbianceJeVois(){
   if (sorted.length === 1) {
     const v = sorted[0];
     const isPiet = PIET_TYPES_M.includes(v.type);
-    const noun = isPiet ? pietTypeMapM[v.type] : avpVehicleNoun(v, 0);
+    const noun = isPiet ? pietTypeMapM[v.type] : (v.type ? avpVehicleNoun(v, 0) : 'véhicule');
     let sentence = `AVP impliquant 1 ${noun}`;
     if (!isPiet) {
       const cargo = avpCargoPhrase(v);
@@ -9707,32 +9798,51 @@ function buildAvpAmbianceJeVois(){
     }
     bits.push(sentence);
   } else {
-    const nounParts = sorted.map((v, idx) => {
-      const isPiet = PIET_TYPES_M.includes(v.type);
-      if (isPiet) {
-        const noun = pietTypeMapM[v.type];
-        const others = sorted.filter((_,j)=>j!==idx);
-        const otherVeh = others.find(u=>!PIET_TYPES_M.includes(u.type)) || others[0];
-        const otherNoun = otherVeh ? (OTHER_LABEL_M[otherVeh.type] || 'véhicule') : 'véhicule';
-        const sitParts = [];
-        if (v.pietSituation === 'EJECTE') sitParts.push('éjecté');
-        else if (v.pietSituation === 'SOUS') sitParts.push('actuellement ' + elideM2('sous ', otherNoun));
-        else if (v.pietSituation === 'SUR') sitParts.push('actuellement ' + elideM2('sur ', otherNoun));
-        const sitStr = sitParts.length ? ` (${sitParts.join(', ')})` : '';
-        return `1 ${noun}${sitStr}`;
+    // ── Vérifier si tous les véhicules sont sans type sélectionné ──
+    const allEmpty = sorted.every(v => !v.type && !PIET_TYPES_M.includes(v.type));
+    if (allEmpty) {
+      // Aucun type renseigné → phrase générique
+      const n = sorted.length;
+      bits.push(`AVP impliquant ${n} véhicule${n > 1 ? 's' : ''}`);
+    } else {
+      // ── Grouper les types identiques : "2 VL contre 1 moto" ──
+      // Construire les groupes dans l'ordre d'apparition (triés, piétons en dernier)
+      const groups = []; // [{noun, count, details}]
+      for (const v of sorted) {
+        const isPiet = PIET_TYPES_M.includes(v.type);
+        let noun, detail = '';
+        if (isPiet) {
+          noun = pietTypeMapM[v.type] || 'piéton';
+          const others = sorted.filter(u => !PIET_TYPES_M.includes(u.type));
+          const otherVeh = others[0];
+          const otherNoun = otherVeh ? (OTHER_LABEL_M[otherVeh.type] || 'véhicule') : 'véhicule';
+          const sitParts = [];
+          if (v.pietSituation === 'EJECTE') sitParts.push('éjecté');
+          else if (v.pietSituation === 'SOUS') sitParts.push('actuellement ' + elideM2('sous ', otherNoun));
+          else if (v.pietSituation === 'SUR')  sitParts.push('actuellement ' + elideM2('sur ', otherNoun));
+          if (sitParts.length) detail = ` (${sitParts.join(', ')})`;
+        } else {
+          noun = v.type ? avpVehicleNoun(v, 0) : 'véhicule';
+          const cargo = avpCargoPhrase(v);
+          const adr = avpAdrPhrase(v);
+          const accidents = avpArrayify(v.accidents).map(a => avpAccLabel(a, v)).filter(Boolean).map(x=>x.toLowerCase());
+          const positions  = avpArrayify(v.positions).map(avpPosLabel).filter(Boolean).map(x=>x.toLowerCase());
+          if (cargo) detail += ` ${cargo}`;
+          if (adr) detail += ` (${adr})`;
+          if (accidents.length) detail += `, en ${avpJoinNatural(accidents, ', ', ' et ')}`;
+          if (positions.length)  detail += `, ${avpJoinNatural(positions,  ', ', ' et ')}`;
+        }
+        // Grouper si même noun ET pas de détail spécifique
+        const last = groups[groups.length - 1];
+        if (last && last.noun === noun && !detail && !last.detail) {
+          last.count++;
+        } else {
+          groups.push({ noun, count: 1, detail });
+        }
       }
-      let n = avpVehicleNoun(v, idx);
-      const cargo = avpCargoPhrase(v);
-      if (cargo) n += ` ${cargo}`;
-      const adr = avpAdrPhrase(v);
-      if (adr) n += ` (${adr})`;
-      const accidents = avpArrayify(v.accidents).map(a => avpAccLabel(a, v)).filter(Boolean).map(x=>x.toLowerCase());
-      const positions  = avpArrayify(v.positions).map(avpPosLabel).filter(Boolean).map(x=>x.toLowerCase());
-      if (accidents.length) n += `, en ${avpJoinNatural(accidents, ', ', ' et ')}`;
-      if (positions.length)  n += `, ${avpJoinNatural(positions,  ', ', ' et ')}`;
-      return `1 ${n}`;
-    });
-    bits.push(`AVP impliquant ${nounParts.join(' contre ')}`);
+      const nounParts = groups.map(g => `${g.count} ${g.noun}${g.count > 1 ? 's' : ''}${g.detail}`);
+      bits.push(`AVP impliquant ${nounParts.join(' contre ')}`);
+    }
   }
 
   // ── Cinétique ──
@@ -9898,7 +10008,10 @@ function ensureRensVictimShape(v){
     arrival: (base.arrival || "").trim(),
     desinc: (base.desinc || "").trim(),
     classif: (base.classif || "").trim(),
-    src: (base.src || "manual").trim()
+    src: (base.src || "manual").trim(),
+    chDest: (base.chDest || "").trim(),    // CH de destination
+    chAutre: (base.chAutre || "").trim(),  // Si "Autre"
+    chMoyen: (base.chMoyen || "").trim()   // Moyen de transport
   };
 }
 
@@ -9995,6 +10108,19 @@ function buildRensVictimesSummary(){
       if (arr) bits.push(arr);
       if (v.desinc && (v.arrival === "PIEGEE" || v.arrival === "INCARCEREE")){
         bits.push("désincarcération " + ({"EN COURS":"en cours", REALISE:"réalisée"}[v.desinc.toUpperCase()] || v.desinc.toLowerCase()));
+      }
+      // Transport CH
+      if (v.chDest) {
+        const dest = v.chDest === 'AUTRE' ? (v.chAutre || 'CH inconnu') : v.chDest;
+        const moyen = v.chMoyen === 'DRAGON' ? 'par hélicoptère Dragon'
+                    : v.chMoyen === 'VSAV' ? 'par VSAV'
+                    : v.chMoyen === 'Ambulancier privé' ? 'par ambulancier privé'
+                    : '';
+        const fem = v.category === 'FEMME';
+        const accord = fem ? 'transportée' : 'transporté';
+        // Élision : "au CH" ou "à l'hôpital"
+        const elide = dest[0].match(/[aeiouéèêëàâùûîïo]/i) ? "à l'" : "au ";
+        bits.push(`${accord} ${elide}${dest}${moyen ? ' ' + moyen : ''}`);
       }
       let sentence = bits.join(', ');
       if (withLabel) sentence = `victime ${idx+1} : ` + sentence;
@@ -10179,6 +10305,24 @@ function renderRensVictimes(){
             <button class="chip" type="button" data-vset="${idx}" data-vfield="classif" data-vvalue="ACR">ACR</button>
           </div>
         </div>
+        <div class="subcard tight" style="margin-top:12px; padding:10px; border-color:rgba(59,130,246,.35); background:rgba(59,130,246,.06);">
+          <div class="subcard-title" style="color:#60a5fa;">🏥 Transport — Destination CH</div>
+          <div class="vict-actions" style="margin-bottom:10px;">
+            ${["CH LAVAL","CH Nord Mayenne","CH Haut Anjou","CH LE MANS","CH ANGERS"].map(ch=>
+              `<button class="chip" type="button" data-vset="${idx}" data-vfield="chDest" data-vvalue="${ch}">${ch}</button>`
+            ).join('')}
+            <button class="chip" type="button" data-vset="${idx}" data-vfield="chDest" data-vvalue="AUTRE">Autre</button>
+          </div>
+          ${v.chDest === 'AUTRE' ? `<input type="text" placeholder="Préciser le CH…" data-vchautre="${idx}" value="${(v.chAutre||'').replace(/"/g,'&quot;')}" style="margin-top:6px;width:100%;box-sizing:border-box;" />` : ''}
+        </div>
+        <div class="subcard tight" style="margin-top:10px; padding:10px; border-color:rgba(59,130,246,.35); background:rgba(59,130,246,.06);">
+          <div class="subcard-title" style="color:#60a5fa;">🚑 Moyen de transport</div>
+          <div class="vict-actions">
+            ${["VSAV","DRAGON","Ambulancier privé"].map(m=>
+              `<button class="chip" type="button" data-vset="${idx}" data-vfield="chMoyen" data-vvalue="${m}">${m === 'DRAGON' ? '🚁 DRAGON (Héli SC)' : m === 'VSAV' ? '🚑 VSAV' : '🚐 Ambulancier privé'}</button>`
+            ).join('')}
+          </div>
+        </div>
         <div class="note" style="margin-top:10px; font-weight:700;">${buildRensVictimesSummaryForRow(v, idx)}</div>
       `;
     } else {
@@ -10223,6 +10367,8 @@ function renderRensVictimes(){
       row.querySelectorAll('[data-vfield="arrival"]').forEach(b=>b.classList.toggle("active", norm(b.dataset.vvalue)===norm(v.arrival)));
       row.querySelectorAll('[data-vfield="desinc"]').forEach(b=>b.classList.toggle("active", norm(b.dataset.vvalue)===norm(v.desinc)));
       row.querySelectorAll('[data-vfield="classif"]').forEach(b=>b.classList.toggle("active", norm(b.dataset.vvalue)===norm(v.classif)));
+      row.querySelectorAll('[data-vfield="chDest"]').forEach(b=>b.classList.toggle("active", norm(b.dataset.vvalue)===norm(v.chDest)));
+      row.querySelectorAll('[data-vfield="chMoyen"]').forEach(b=>b.classList.toggle("active", norm(b.dataset.vvalue)===norm(v.chMoyen)));
     } else {
       const act=norm(v.act), stat=norm(v.stat);
       row.querySelectorAll('[data-vfield="act"]').forEach(b=>b.classList.toggle("active", norm(b.dataset.vvalue)===act));
@@ -10246,6 +10392,12 @@ function buildRensVictimesSummaryForRow(raw, idx){
   }
   const classif = ({UA:"UA", UR:"UR", IMPLIQUEE:"Impliquée", ACR:"ACR"}[v.classif] || "");
   if (classif) bits.push(classif);
+  // Transport
+  if (v.chDest) {
+    const dest = v.chDest === 'AUTRE' ? (v.chAutre || 'CH ?') : v.chDest;
+    const moyen = {VSAV:'VSAV', DRAGON:'Dragon', 'Ambulancier privé':'ambulancier privé'}[v.chMoyen] || '';
+    bits.push('→ ' + dest + (moyen ? ' par ' + moyen : ''));
+  }
   return bits.join(" — ");
 }
 
@@ -10306,13 +10458,24 @@ function buildRensVictimesSummaryForRow(raw, idx){
 
   card.addEventListener("input", (e)=>{
     const age = e.target.closest("[data-vage]");
-    if (!age) return;
-    const i = parseInt(age.dataset.vage, 10);
-    if (Number.isNaN(i)) return;
-    state.rensVictims[i] = ensureRensVictimShape(state.rensVictims[i]);
-    state.rensVictims[i].age = String(age.value || "").replace(/[^0-9]/g, "").slice(0,3);
-    state.rensVictimsDirty = true;
-    updatePreview && updatePreview();
+    if (age) {
+      const i = parseInt(age.dataset.vage, 10);
+      if (Number.isNaN(i)) return;
+      state.rensVictims[i] = ensureRensVictimShape(state.rensVictims[i]);
+      state.rensVictims[i].age = String(age.value || "").replace(/[^0-9]/g, "").slice(0,3);
+      state.rensVictimsDirty = true;
+      updatePreview && updatePreview();
+      return;
+    }
+    const chAutreInp = e.target.closest("[data-vchautre]");
+    if (chAutreInp) {
+      const i = parseInt(chAutreInp.dataset.vchautre, 10);
+      if (Number.isNaN(i)) return;
+      state.rensVictims[i] = ensureRensVictimShape(state.rensVictims[i]);
+      state.rensVictims[i].chAutre = (chAutreInp.value || "").trim();
+      state.rensVictimsDirty = true;
+      updatePreview && updatePreview();
+    }
   });
 })();
 
@@ -10515,7 +10678,18 @@ function buildMessage(){
     const victSum = (typeof buildRensVictimesSummary === "function") ? buildRensVictimesSummary() : "";
     const avpFais = (state.type === "AVP" && typeof buildAvpRensJeFais === "function") ? buildAvpRensJeFais() : "";
     if (state.type === "AVP"){
-      const faisParts = [fais, victSum, avpFais].map(x => (x || '').trim().replace(/[.;\s]+$/g, '')).filter(Boolean);
+      // Construire les parts en évitant les doublons
+      const rawParts = [fais, victSum, avpFais];
+      const seen = new Set();
+      const faisParts = rawParts
+        .map(x => (x || '').trim().replace(/[.;\s]+$/g, ''))
+        .filter(x => {
+          if (!x) return false;
+          const key = x.toLowerCase().replace(/\s+/g, ' ');
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
       fais = faisParts.join('. ');
     } else {
       if (victSum){
@@ -10878,11 +11052,10 @@ function updateOutput(){
   btnCopy.addEventListener('click', ()=> copyText(out.textContent));
 
   btnArch.addEventListener('click', ()=>{
-    // construit le message à l'instant T (au cas où)
     const msg = buildMessage();
     out.textContent = formatMessageLitteraire(msg);
     const ok = (typeof window.__archiveMessage === 'function') ? window.__archiveMessage(msg, { type: state.type, tab: state.tab }) : false;
-    if(ok) toast('Message archivé');
+    if(ok){ if(typeof feedbackArchive==='function') feedbackArchive(btnArch); }
     else toast('Rien à archiver');
   });
 })();
@@ -10917,7 +11090,7 @@ function updateOutput(){
     const msg = buildMessage();
     out.textContent = formatMessageLitteraire(msg);
     const ok = (typeof window.__archiveMessage === 'function') ? window.__archiveMessage(msg, { type: state.type, tab: state.tab, scope: 'AVP' }) : false;
-    if(ok) toast('Message archivé');
+    if(ok){ if(typeof feedbackArchive==='function') feedbackArchive(btnArch); }
     else toast('Rien à archiver');
   });
 })();
@@ -10978,14 +11151,7 @@ function updateOutput(){
         }catch(e){}
       }
       if(ok){
-        btnArchiveTransit.textContent = "✅ Archivé !";
-        btnArchiveTransit.style.background = "#22c55e";
-        btnArchiveTransit.style.color = "#000";
-        setTimeout(function(){
-          btnArchiveTransit.textContent = "🗂️ Archiver le message";
-          btnArchiveTransit.style.background = "#1a2a1a";
-          btnArchiveTransit.style.color = "#22c55e";
-        }, 2000);
+        if(typeof feedbackArchive==='function') feedbackArchive(btnArchiveTransit);
       }
     });
   }
@@ -11897,8 +12063,10 @@ window.addEventListener("beforeunload", cleanupUrls);
     // Ajuste à la taille n
     if (state.incVictims.length > n) state.incVictims = state.incVictims.slice(0, n);
     while (state.incVictims.length < n){
-      state.incVictims.push({ act:"", stat:"" });
+      state.incVictims.push({ act:"", stat:"", cons:"" });
     }
+    // S'assurer que cons est initialisé pour les victimes existantes
+    state.incVictims.forEach(v => { if (v.cons === undefined) v.cons = ""; });
   }
 
   function renderList(){
@@ -11919,6 +12087,14 @@ window.addEventListener("beforeunload", cleanupUrls);
       row.innerHTML = `
         <div class="vict-head">
           <div>Victime ${idx+1}</div>
+        </div>
+
+        <div class="subcard tight" style="margin-bottom:10px; padding:10px;">
+          <div class="subcard-title">Conscience</div>
+          <div class="vict-actions" id="incConsChips_${idx}">
+            <button class="chip" type="button" data-iset="${idx}" data-ifield="cons" data-ivalue="CONSCIENTE">😌 Consciente</button>
+            <button class="chip" type="button" data-iset="${idx}" data-ifield="cons" data-ivalue="INCONSCIENTE">😶 Inconsciente</button>
+          </div>
         </div>
 
         <div class="vict-grid">
@@ -11943,12 +12119,13 @@ window.addEventListener("beforeunload", cleanupUrls);
         </div>
 
         <div class="note" style="margin-top:10px; font-weight:700;">
-          ${v.act ? v.act : "(type ?)"}${v.act&&v.stat?" — ":""}${v.stat ? v.stat : "(statut ?)"}
+          ${v.cons ? (v.cons === 'CONSCIENTE' ? 'Consciente' : 'Inconsciente') + ' — ' : ''}${v.act ? v.act : "(type ?)"}${v.act&&v.stat?" — ":""}${v.stat ? v.stat : "(statut ?)"}
         </div>
       `;
       listEl.appendChild(row);
 
-      const act = norm(v.act), stat = norm(v.stat);
+      const act = norm(v.act), stat = norm(v.stat), cons = norm(v.cons);
+      row.querySelectorAll('[data-ifield="cons"]').forEach(b=>b.classList.toggle("active", norm(b.dataset.ivalue)===cons));
       row.querySelectorAll('[data-ifield="act"]').forEach(b=>b.classList.toggle("active", norm(b.dataset.ivalue)===act));
       row.querySelectorAll('[data-ifield="stat"]').forEach(b=>b.classList.toggle("active", norm(b.dataset.ivalue)===stat));
     });
@@ -12414,30 +12591,48 @@ try{ refreshGlobalCards(); }catch(e){}
       }
       bits.push(sentence);
     } else {
-      var nounParts = sorted_mb.map(function(v, idx){
-        if(PIET_TYPES_MB.indexOf(v.type) >= 0){
-          var noun = PIET_NOUN_MB[v.type] || v.type.toLowerCase();
-          var othersM = sorted_mb.filter(function(_,j){ return j!==idx; });
-          var otherVehM = othersM.filter(function(u){ return PIET_TYPES_MB.indexOf(u.type)<0; })[0] || othersM[0];
-          var otherNounM = otherVehM ? (OTHER_LBL_MB[(otherVehM.type||'').toUpperCase()]||'véhicule') : 'véhicule';
-          var sitParts = [];
-          if(v.pietSituation === 'EJECTE') sitParts.push('éjecté');
-          else if(v.pietSituation === 'SOUS') sitParts.push('actuellement ' + elideMB('sous ', otherNounM));
-          else if(v.pietSituation === 'SUR')  sitParts.push('actuellement ' + elideMB('sur ',  otherNounM));
-          var sitStr = sitParts.length ? ' (' + sitParts.join(', ') + ')' : '';
-          return '1 ' + noun + sitStr;
-        }
-        var type = TYPE_LABEL[v.type] || ('véhicule ' + (idx+1));
-        var n = type;
-        var cargo = String(v.cargo||'').trim();
-        if(cargo) n += ' transportant ' + cargo;
-        var accs = uniq((v.accidents||[]).map(function(a){ return ACC_LABEL[a]||''; })).filter(Boolean);
-        var poss = uniq((v.positions||[]).map(function(p){ return POS_LABEL[p]||''; })).filter(Boolean);
-        if(accs.length) n += ', en ' + accs.join(' et ');
-        if(poss.length) n += ', ' + poss.join(' et ');
-        return '1 ' + n;
-      });
-      bits.push('AVP impliquant ' + nounParts.join(' contre '));
+      // Vérifier si aucun type n'est renseigné
+      var allEmptyMB = sorted_mb.every(function(v){ return !v.type; });
+      if(allEmptyMB){
+        var n = sorted_mb.length;
+        bits.push('AVP impliquant ' + n + ' véhicule' + (n > 1 ? 's' : ''));
+      } else {
+        // Grouper les types identiques sans détail
+        var groupsMB = [];
+        sorted_mb.forEach(function(v, idx){
+          var isPietMB = PIET_TYPES_MB.indexOf(v.type) >= 0;
+          var noun, detail = '';
+          if(isPietMB){
+            noun = PIET_NOUN_MB[v.type] || 'piéton';
+            var othersM = sorted_mb.filter(function(u){ return PIET_TYPES_MB.indexOf(u.type)<0; });
+            var otherVehM = othersM[0];
+            var otherNounM = otherVehM ? (OTHER_LBL_MB[(otherVehM.type||'').toUpperCase()]||'véhicule') : 'véhicule';
+            var sitParts = [];
+            if(v.pietSituation === 'EJECTE') sitParts.push('éjecté');
+            else if(v.pietSituation === 'SOUS') sitParts.push('actuellement ' + elideMB('sous ', otherNounM));
+            else if(v.pietSituation === 'SUR')  sitParts.push('actuellement ' + elideMB('sur ',  otherNounM));
+            if(sitParts.length) detail = ' (' + sitParts.join(', ') + ')';
+          } else {
+            noun = TYPE_LABEL[v.type] || 'véhicule';
+            var cargo = String(v.cargo||'').trim();
+            var accs = uniq((v.accidents||[]).map(function(a){ return ACC_LABEL[a]||''; })).filter(Boolean);
+            var poss = uniq((v.positions||[]).map(function(p){ return POS_LABEL[p]||''; })).filter(Boolean);
+            if(cargo) detail += ' transportant ' + cargo;
+            if(accs.length) detail += ', en ' + accs.join(' et ');
+            if(poss.length) detail += ', ' + poss.join(' et ');
+          }
+          var last = groupsMB[groupsMB.length - 1];
+          if(last && last.noun === noun && !detail && !last.detail){
+            last.count++;
+          } else {
+            groupsMB.push({ noun: noun, count: 1, detail: detail });
+          }
+        });
+        var nounParts = groupsMB.map(function(g){
+          return g.count + ' ' + g.noun + (g.count > 1 ? 's' : '') + g.detail;
+        });
+        bits.push('AVP impliquant ' + nounParts.join(' contre '));
+      }
     }
 
     // Cinétique
@@ -13350,8 +13545,39 @@ try{ refreshGlobalCards(); }catch(e){}
     var el=byId('rwAvpOutFinal')||byId('rwOutFinal'); if(!el) return;
     if(navigator.clipboard) navigator.clipboard.writeText(el.textContent).catch(function(){});
   };
-  window.rwArchive = function(){
-    var btn=byId('btnArchiveFinal'); if(btn) btn.click();
+  /* ===== FEEDBACK VISUEL UNIVERSEL POUR ARCHIVER ===== */
+  window.feedbackArchive = function(btn){
+    if(!btn) return;
+    var origText  = btn.textContent;
+    var origBg    = btn.style.background;
+    var origColor = btn.style.color;
+    var origBorder= btn.style.border || btn.style.borderColor;
+    btn.textContent = '✅ Archivé !';
+    btn.style.background   = '#22c55e';
+    btn.style.color        = '#000';
+    btn.style.border       = '2px solid #22c55e';
+    btn.disabled = true;
+    setTimeout(function(){
+      btn.textContent = origText;
+      btn.style.background   = origBg;
+      btn.style.color        = origColor;
+      btn.style.border       = origBorder;
+      btn.disabled = false;
+    }, 2000);
+  };
+
+  window.rwArchive = function(callerBtn){
+    var btn=byId('btnArchiveFinal');
+    if(btn){
+      // Archiver directement sans click() pour éviter double feedback
+      var msg = (typeof buildMessage==='function') ? buildMessage() : '';
+      var ok = (typeof window.__archiveMessage === 'function') ? window.__archiveMessage(msg, { type: (window.state&&state.type)||'INC', tab: (window.state&&state.tab)||'renseignement' }) : false;
+      if(ok && typeof feedbackArchive==='function'){
+        // Feedback sur le bouton appelant (wizard) ET sur btnArchiveFinal si visible
+        if(callerBtn) feedbackArchive(callerBtn);
+        feedbackArchive(btn);
+      } else if(!ok) { if(typeof toast==='function') toast('Rien à archiver'); }
+    }
   };
 
   function rwOutput(){
@@ -14720,6 +14946,7 @@ try{ refreshGlobalCards(); }catch(e){}
     state.avpDesinc = '';
     state.avpPoliceSLL = false;
     state.avpPoliceSite = false;
+    state.avpRoutesSLL = false;
     window._avpActiveVeh = 0;
     // Remettre victDone à false pour re-téléporter le bloc victime
     victDone = false;
@@ -14809,7 +15036,7 @@ try{ refreshGlobalCards(); }catch(e){}
         items.push({ ts: Date.now(), text: msg, type: window.S ? S.type : 'INC', tab: 'ambiance' });
         localStorage.setItem(KEY, JSON.stringify(items));
         var btn = document.querySelector('[onclick="mwArchiver()"]');
-        if(btn){ btn.textContent = '✅ Archivé !'; setTimeout(function(){ btn.textContent = '🗂️ Archiver le message'; }, 2000); }
+        if(btn && typeof feedbackArchive==='function') feedbackArchive(btn);
       } catch(e){}
     }
   };

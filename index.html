@@ -5579,149 +5579,119 @@ function agComputeSeverity(){
 }
 
 function agBuildMessage(mode, opts = {}){
-  const dictation = !!opts.dictation;
   const suppressRisks = !!opts.suppressRisks;
   const leafId = state.incAgricoleLeafId || "";
   const meta = leafId ? (AGRICOLE_LEAVES_META[leafId] || {}) : {};
   const objet = meta.object || state.incAgricoleLeafLabel || "site agricole";
 
   const surfaceRaw = agGet("batiment_ou_zone.surface");
-  const surface = agSurfaceOral(surfaceRaw);
-  const structure = agPretty(agGet("batiment_ou_zone.structure")) || "inconnue";
-  const etatFeu = agPretty(agGet("sinistre.etat_feu")) || "inconnu";
+  const structureRaw = agGet("batiment_ou_zone.structure");
+  const etatFeuRaw = agGet("sinistre.etat_feu") || "";
 
-  // Animaux (si le type les utilise)
+  // Surface (masquer si inconnue)
+  const surface = (!surfaceRaw || surfaceRaw === "INCONNUE") ? "" : agSurfaceOral(surfaceRaw);
+  // Structure (masquer si inconnue)
+  const structure = (!structureRaw || structureRaw === "INCONNU" || structureRaw === "INCONNUE") ? "" : agPretty(structureRaw);
+  // État feu
+  const etatFeu = agPretty(etatFeuRaw) || "";
+  // Fumées
+  const fumeesRaw = agGet("sinistre.fumees") || agGet("sinistre.degagement_fumees") || "";
+  const fumeesTxt = (fumeesRaw && fumeesRaw !== "INCONNU") ? `dégagement de fumées ${agPretty(fumeesRaw)}` : "";
+
+  // Animaux
   let animauxTxt = "";
   const pres = agGet("animaux.presence_animaux");
-  if (pres && pres !== "AUCUN"){
-    const evac = agPretty(agGet("animaux.evacuation_possible")) || "inconnu";
-    animauxTxt = `Présence ${agPretty(pres)}, évacuation ${evac}. `;
+  if (pres && pres !== "AUCUN" && pres !== "INCONNU"){
+    const evac = agGet("animaux.evacuation_possible");
+    animauxTxt = `présence ${agPretty(pres)}${evac && evac !== "INCONNU" ? ", évacuation " + agPretty(evac) : ""}`;
   }
 
-  // Énergies (n'afficher que si pertinent)
+  // Énergies
   const energiesParts = [];
   const elecRaw = agGet("energies.electricite");
   const gazRaw = agGet("energies.gaz");
   const pv = agGet("energies.photovoltaique");
-
-  if (elecRaw && elecRaw !== "INCONNUE") energiesParts.push(`électricité ${agPretty(elecRaw)}`);
+  if (elecRaw && elecRaw !== "INCONNUE"){
+    energiesParts.push(elecRaw === "NON_COUPEE" ? "électricité non coupée" : elecRaw === "COUPEE" ? "électricité coupée" : `électricité ${agPretty(elecRaw)}`);
+  }
   if (gazRaw && !["INCONNU","AUCUN","INCONNUE"].includes(gazRaw)) energiesParts.push(`gaz ${agPretty(gazRaw)}`);
-  if (pv === "OUI") energiesParts.push("photovoltaïque présent");
+  if (pv === "OUI") energiesParts.push("panneaux photovoltaïques présents");
 
-  const energiesTxt = energiesParts.length ? `Énergies : ${energiesParts.join(", ")}. ` : "";
-
-  // Risques : en radio, on ne remonte que ce qui est explicitement constaté / renseigné.
-  // -> On exclut les risques "par défaut" (théoriques) pour éviter les faux positifs.
-  const defRisks = [];
-  const specRisks = agLeafSpecificRisks(leafId);
-  const allRisks = [...defRisks, ...specRisks].filter(Boolean);
-  const cleanRisks = allRisks.map(agCleanRiskLabel).filter(Boolean);
-  const risquesTxt = cleanRisks.length ? `Risque ${agJoinList(cleanRisks)}. ` : "";
-  const risquesBrefsTxt = cleanRisks.length ? `Risque ${agJoinList(cleanRisks)}. ` : "";
+  // Risques spécifiques
+  const specRisks = agLeafSpecificRisks(leafId).map(agCleanRiskLabel).filter(Boolean);
 
   // Enjeux
   const env = agGet("enjeux.propagation_enjeux");
-  const envArr = Array.isArray(env) ? env : (env ? [env] : []);
-  const envClean = envArr.filter(v => v && v !== "INCONNU");
-  let enjeuxTxt = "";
-  let enjeuxBrefsTxt = "";
-  if (envClean.length){
-    // Si aucun enjeu, on n'affiche rien (radio pur)
-    if (!envClean.includes("AUCUN")){
-      const pretty = envClean.map(agPretty);
-      enjeuxTxt = `Enjeux : ${agJoinList(pretty)}. `;
-      enjeuxBrefsTxt = `Enjeux : ${agJoinList(pretty)}. `;
-    }
-  }
+  const envArr = (Array.isArray(env) ? env : (env ? [env] : [])).filter(v => v && v !== "INCONNU" && v !== "AUCUN");
+  const enjeuxPretty = envArr.map(agPretty).filter(Boolean);
 
-  // Eau (radio) : n'afficher que si renseigné (pas de "inconnu")
+  // Eau
   const eauRaw = agGet("eau.ressource_eau");
-  let eauTxt = "";
-  if (eauRaw && eauRaw !== "INCONNUE" && eauRaw !== "INCONNU"){
-    const eau = agPretty(eauRaw);
-    if (eau && eau !== "inconnue" && eau !== "inconnu"){
-      eauTxt = `Point d’eau : ${eau}. `;
-    }
-  }
+  const eauTxt = (eauRaw && eauRaw !== "INCONNUE" && eauRaw !== "INCONNU") ? `point d'eau : ${agPretty(eauRaw)}` : "";
 
-  // Informations utiles selon le leaf (au-delà des risques)
+  // Détails spécifiques
   let detailsLeafTxt = "";
   const g = (k) => agGet(k);
   if (leafId === "HANGAR_STOCKAGE_FOURRAGE"){
-    const fourrage = g("contenu.fourrage_present");
     const q = g("contenu.quantite");
-    if (fourrage === "OUI") detailsLeafTxt += `Fourrage ${agPretty(q) || ""}. `;
+    if (g("contenu.fourrage_present") === "OUI") detailsLeafTxt = `fourrage${q && q !== "INCONNU" ? " (" + agPretty(q) + ")" : ""}`;
   }
   if (leafId === "SILO_A_GRAINS"){
     const t = g("type_silo");
-    if (t && t !== "INCONNU") detailsLeafTxt += `Type silo ${agPretty(t)}. `;
-    if (g("operations.manutention_en_cours") === "OUI") detailsLeafTxt += "Manutention en cours. ";
-    if (g("operations.ventilation") === "OUI") detailsLeafTxt += "Ventilation en service. ";
+    if (t && t !== "INCONNU") detailsLeafTxt = `silo ${agPretty(t)}`;
+    if (g("operations.manutention_en_cours") === "OUI") detailsLeafTxt += ", manutention en cours";
   }
   if (leafId === "CITERNE_GPL_PROPANE"){
     const d = g("distance_feu");
-    if (d && d !== "INCONNUE") detailsLeafTxt += `Citerne à ${agPretty(d)}. `;
+    if (d && d !== "INCONNUE") detailsLeafTxt = `citerne à ${agPretty(d)}`;
   }
   if (leafId === "METHANISATION"){
     const z = g("zone");
-    if (z && z !== "INCONNU") detailsLeafTxt += `Zone : ${agPretty(z)}. `;
-  }
-  if (leafId === "PHOTOVOLTAIQUE"){
-    const impl = g("type_implantation");
-    if (impl && impl !== "INCONNU") detailsLeafTxt += `PV ${agPretty(impl).toLowerCase().replace("_"," ")}. `;
+    if (z && z !== "INCONNU") detailsLeafTxt = `zone ${agPretty(z)}`;
   }
 
-  const data = {
-    type_intervention: "FEU",
-    objet,
-    surface_txt: `surface ${surface}`,
-    structure_txt: structure,
-    etat_feu_txt: etatFeu,
-    animaux_txt: animauxTxt,
-    energies_txt: energiesTxt,
-    risques_txt: risquesTxt,
-    enjeux_txt: enjeuxTxt,
-    eau_txt: eauTxt,
-    details_leaf_txt: detailsLeafTxt,
-    risques_brefs_txt: risquesBrefsTxt,
-    enjeux_brefs_txt: enjeuxBrefsTxt
-  };
+  // ── Construction de la phrase principale ──
+  const parts = [];
 
-  // Mode radio pur (dictée) : message compact et dictable
-  if (dictation){
-    const parts = [];
+  // 1. "Feu de [objet]" avec élision
+  const vowels = 'aeiouéèêëàâùûîïo';
+  const elide = vowels.includes((objet||"")[0].toLowerCase());
+  let intro = `Feu ${elide ? "d'" : "de "}${objet}`;
+  if (surface) intro += `, ${surface}`;
+  if (structure) intro += `, structure ${structure}`;
+  parts.push(intro);
 
-    // Description principale
-    parts.push(`${objet}, ${surface}, structure ${structure}, feu ${etatFeu}.`);
+  // 2. État feu + fumées
+  const etatBits = [];
+  if (etatFeu) etatBits.push(`feu ${etatFeu}`);
+  if (fumeesTxt) etatBits.push(fumeesTxt);
+  if (etatBits.length) parts.push(etatBits.join(", "));
 
-    // Animaux + détails leaf (si présents)
-    if (animauxTxt) parts.push(animauxTxt.trim());
-    if (detailsLeafTxt) parts.push(detailsLeafTxt.trim());
+  // 3. Animaux
+  if (animauxTxt) parts.push(animauxTxt);
 
-    // Énergies / enjeux / eau (déjà conditionnels + nettoyés)
-    if (energiesTxt) parts.push(energiesTxt.trim());
-    // En mode radio pur : n'afficher les risques que si demandé, sinon on les omet.
-    if (!suppressRisks && risquesTxt) parts.push(risquesTxt.trim());
-    if (enjeuxTxt) parts.push(enjeuxTxt.replace(/^Enjeux\s*:\s*/i, "Enjeux ").trim());
+  // 4. Détails spécifiques
+  if (detailsLeafTxt) parts.push(detailsLeafTxt);
 
-    if (eauTxt) parts.push(eauTxt.trim());
+  // 5. Énergies
+  if (energiesParts.length) parts.push(energiesParts.join(", "));
 
-    return parts
-      .join(" ")
-      .replace(/\s+/g, " ")
-      .replace(/\s+\./g, ".")
-      .trim();
-  }
+  // 6. Risques
+  if (!suppressRisks && specRisks.length) parts.push(`risque${specRisks.length > 1 ? "s" : ""} : ${specRisks.join(", ")}`);
 
-  const tpl = (mode === "bref") ? AGRICOLE_MESSAGE_TEMPLATES.bref : AGRICOLE_MESSAGE_TEMPLATES.complet;
+  // 7. Enjeux
+  if (enjeuxPretty.length) parts.push(`à proximité : ${enjeuxPretty.join(", ")}`);
 
-  return tpl
-    .replace(/\{([a-zA-Z0-9_]+)\}/g, (_, k) => (data[k] ?? ""))
+  // 8. Eau
+  if (eauTxt) parts.push(eauTxt);
+
+  return parts
+    .filter(Boolean)
+    .join(", ")
+    .replace(/,\s*,+/g, ",")
     .replace(/\s+/g, " ")
-    .replace(/\s+\./g, ".")
     .trim();
 }
-
 function agUpdateMessageHint(){
   const hint = document.getElementById("agriMsgHint");
   if (!hint) return;

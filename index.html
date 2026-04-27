@@ -1101,6 +1101,7 @@ section.card[data-card="photosInterv"]{
 .vict-card .chip.vic-type[data-vict-type="SAUVETAGE"].active{background:rgba(255,80,80,.22); border-color:rgba(255,80,80,.55);}
 .vict-card .chip.vic-status.active{background:rgba(255,170,0,.18); border-color:rgba(255,170,0,.55);}
 .vict-card .chip.vic-status[data-vict-status="REALISE"].active{background:rgba(0,200,120,.18); border-color:rgba(0,200,120,.55);}
+.vict-card .chip.vic-status[data-vict-status="EN_ATTENTE"].active{background:rgba(251,146,60,.18); border-color:rgba(251,146,60,.55);}
 .vict-card .chip.vic-cons.active{background:rgba(180,255,180,.16); border-color:rgba(180,255,180,.55);}
 
 #rensJeVoisSynth{resize:vertical;}
@@ -2291,9 +2292,12 @@ section.card[data-card="photosInterv"]{
           </div>
         </div>
 
-        <div id="incTypeLieuOtherWrap" hidden>
-          <label>Autre (préciser)</label>
-          <input id="incTypeLieuOther" placeholder="Préciser…" />
+        <div id="incTypeLieuOtherWrap" hidden style="display:none !important;">
+          <div class="subcard tight" style="border:2px solid rgba(251,146,60,.5);background:rgba(251,146,60,.06);margin-top:8px;">
+            <div class="subcard-title" style="color:#fb923c;">✏️ Préciser le type de feu</div>
+            <input id="incTypeLieuOther" placeholder="ex : abri de jardin, benne, haie, local technique…" style="margin-top:6px;" />
+            <div class="note" style="font-size:12px;margin-top:6px;opacity:.7;">Le message radio reprend exactement ce que vous écrivez ici.</div>
+          </div>
         </div>
 
 
@@ -2325,6 +2329,15 @@ section.card[data-card="photosInterv"]{
           <button class="chip" type="button" data-lieu="magasin">Magasin / ERP</button>
           <button class="chip" type="button" data-lieu="vlpl">VL / PL</button>
           <button class="chip" type="button" data-lieu="fen">FEN</button>
+        </div>
+
+        <!-- Panneau Autre -->
+        <div id="lieu_autre" class="lieu-panel" hidden>
+          <div class="subcard tight" style="border:2px solid rgba(251,146,60,.5);background:rgba(251,146,60,.06);">
+            <div class="subcard-title" style="color:#fb923c;">✏️ Préciser le type de feu</div>
+            <input id="incTypeLieuOtherDetail" placeholder="ex : abri de jardin, benne, haie, local technique…" style="margin-top:6px;" />
+            <div class="note" style="font-size:12px;margin-top:6px;opacity:.7;">Le message radio reprend exactement ce que vous écrivez ici.</div>
+          </div>
         </div>
 
         
@@ -2370,10 +2383,17 @@ section.card[data-card="photosInterv"]{
               <button class="chip" type="button" data-fireloc="RDC">Rez-de-chaussée</button>
               <button class="chip" type="button" data-fireloc="ETAGE">Étage</button>
               <button class="chip" type="button" data-fireloc="COMBLES">Combles</button>
+              <button class="chip" type="button" data-fireloc="TOITURE">Toiture</button>
               <button class="chip" type="button" data-fireloc="CUISINE">Cuisine</button>
               <button class="chip" type="button" data-fireloc="SALON">Salon</button>
               <button class="chip" type="button" data-fireloc="CHAMBRE">Chambre</button>
               <button class="chip" type="button" data-fireloc="BUANDERIE">Buanderie</button>
+            </div>
+            <!-- Sous-panneau toiture : photovoltaïque -->
+            <div id="pavToitureWrap" hidden style="margin-top:10px;">
+              <div class="chips center">
+                <button class="chip" type="button" id="btnPavPhotovoltaique">☀️ Présence de panneaux photovoltaïques</button>
+              </div>
             </div>
             <div class="chips center" style="margin-top:8px;">
               <button id="btnPavPropagation" class="chip" type="button">Risque de propagation</button>
@@ -2625,6 +2645,14 @@ section.card[data-card="photosInterv"]{
             </div>
             </div>
           </div>
+
+          <div class="subcard tight" style="margin-top:12px;">
+            <div class="subcard-title">🔔 Dispositifs / Présence</div>
+            <div class="chips center" style="margin-top:8px;">
+              <button class="chip" type="button" id="btnErpSSI">SSI déclenché</button>
+              <button class="chip" type="button" id="btnErpAgents">👮 Agents de sécurité SLL</button>
+            </div>
+          </div>
         </div>
 
         <div id="lieu_vlpl" class="lieu-panel" hidden>
@@ -2650,20 +2678,38 @@ section.card[data-card="photosInterv"]{
                 <button class="chip" type="button" data-perim="EN_COURS">En cours</button>
               </div>
             </div>
+
+            <div style="margin-top:14px;">
+              <label>Localisation</label>
+              <div class="chips center" id="vlLocalisationChips" style="margin-top:6px;">
+                <button class="chip" type="button" data-vlloc="PARKING">Parking</button>
+                <button class="chip" type="button" data-vlloc="VP">Voie publique</button>
+                <button class="chip" type="button" data-vlloc="VOIE_PRIVEE">Voie privée</button>
+                <button class="chip" type="button" data-vlloc="GENE">Gêne à la circulation</button>
+                <button class="chip" type="button" data-vlloc="PAS_GENE">Pas de gêne à la circulation</button>
+                <button class="chip" type="button" data-vlloc="AUTRE">Autre</button>
+              </div>
+              <div id="vlLocAutreWrap" hidden style="margin-top:8px;">
+                <input id="vlLocAutre" placeholder="Préciser la localisation…"
+                  oninput="if(window.state){state.vlLocAutre=this.value.trim();if(typeof updatePreview==='function')updatePreview();}" />
+              </div>
+            </div>
           </div>
 
           <!-- PL -->
           <div id="plBlock" hidden>
             <label>Type de PL</label>
             <div class="chips center" id="plTypeChips">
-              <button class="chip" type="button" data-chip="BENNE">BENNE</button>
-              <button class="chip" type="button" data-chip="SEMI-REMORQUE">SEMI-REMORQUE</button>
-              <button class="chip" type="button" data-chip="FRIGORIFIQUE">FRIGORIFIQUE</button>
-              <button class="chip" type="button" data-chip="PLATEAU">PLATEAU</button>
-              <button class="chip" type="button" data-chip="CAMIONETTE">CAMIONETTE</button>
-              <button class="chip" type="button" data-chip="BÂCHE">BÂCHE</button>
-              <button class="chip" type="button" data-chip="CITERNE">CITERNE</button>
+              <button class="chip" type="button" data-chip="BENNE">Benne</button>
+              <button class="chip" type="button" data-chip="SEMI-REMORQUE">Semi-remorque</button>
+              <button class="chip" type="button" data-chip="FRIGORIFIQUE">Frigorifique</button>
+              <button class="chip" type="button" data-chip="PLATEAU">Plateau</button>
+              <button class="chip" type="button" data-chip="CAMIONETTE">Camionnette</button>
+              <button class="chip" type="button" data-chip="BÂCHE">Bâché</button>
+              <button class="chip" type="button" data-chip="CITERNE">Citerne</button>
               <button class="chip" type="button" data-chip="TMD">TMD</button>
+              <button class="chip" type="button" data-chip="ENGIN_AGRICOLE">🚜 Engin agricole</button>
+              <button class="chip" type="button" data-chip="ENGIN_CHANTIER">🏗️ Engin de chantier</button>
             </div>
 
             <div id="plMarchandiseWrap" hidden style="margin-top:10px">
@@ -2677,6 +2723,7 @@ section.card[data-card="photosInterv"]{
               <div class="chips center" id="plFuelChips">
                 <button class="chip" type="button" data-chip="ESSENCE">ESSENCE</button>
                 <button class="chip" type="button" data-chip="DIESEL">DIESEL</button>
+                <button class="chip" type="button" data-chip="GNR">GNR</button>
                 <button class="chip" type="button" data-chip="HYBRIDE">HYBRIDE</button>
                 <button class="chip" type="button" data-chip="ELECTRIQUE">ELECTRIQUE</button>
                 <button class="chip" type="button" data-chip="GPL">GPL</button>
@@ -2690,6 +2737,25 @@ section.card[data-card="photosInterv"]{
               <div class="chips center" id="plPerimetreChips">
                 <button class="chip" type="button" data-perim="REALISE">Réalisé</button>
                 <button class="chip" type="button" data-perim="EN_COURS">En cours</button>
+              </div>
+            </div>
+
+            <!-- Localisation PL -->
+            <div id="plLocalisationBlock" hidden style="margin-top:14px;">
+              <label>Localisation</label>
+              <div class="chips center" id="plLocalisationChips" style="margin-top:6px;">
+                <button class="chip" type="button" data-plloc="PARKING">Parking</button>
+                <button class="chip" type="button" data-plloc="VP">Voie publique</button>
+                <button class="chip" type="button" data-plloc="VOIE_PRIVEE">Voie privée</button>
+                <button class="chip" type="button" data-plloc="GENE">Gêne à la circulation</button>
+                <button class="chip" type="button" data-plloc="PAS_GENE">Pas de gêne à la circulation</button>
+                <button class="chip" type="button" data-plloc="CHAMP">Champ</button>
+                <button class="chip" type="button" data-plloc="CHANTIER_PRIVE">Chantier privé</button>
+                <button class="chip" type="button" data-plloc="AUTRE">Autre</button>
+              </div>
+              <div id="plLocAutreWrap" hidden style="margin-top:8px;">
+                <input id="plLocAutre" placeholder="Préciser la localisation…"
+                  oninput="if(window.state){state.plLocAutre=this.value.trim();if(typeof updatePreview==='function')updatePreview();}" />
               </div>
             </div>
 
@@ -2789,6 +2855,24 @@ section.card[data-card="photosInterv"]{
             <button class="chip" type="button" data-chip="Installation basse tension">🔌 Basse tension</button>
             <button class="chip" type="button" data-chip="Autre installation électrique">✏️ Autre</button>
           </div>
+
+          <!-- Panneaux spécifiques photovoltaïque -->
+          <div id="pvLocalisationWrap" hidden style="margin-top:14px;">
+            <div class="section-title">Localisation</div>
+            <div class="chips center" id="pvLocalisationChips">
+              <button class="chip" type="button" data-pvloc="TOIT_PLAT">Sur toit plat</button>
+              <button class="chip" type="button" data-pvloc="TOITURE">Sur toiture</button>
+              <button class="chip" type="button" data-pvloc="SOL">Au sol</button>
+              <button class="chip" type="button" data-pvloc="BALCON">Sur balcon</button>
+              <button class="chip" type="button" data-pvloc="MUR">Contre un mur</button>
+            </div>
+          </div>
+          <div id="pvSuperficieWrap" hidden style="margin-top:14px;">
+            <div class="section-title">Superficie</div>
+            <input id="pvSuperficieInput" placeholder="ex : 20 m², toiture entière, quelques panneaux…"
+              oninput="if(window.state){state.pvSuperficie=this.value.trim();if(typeof updatePreview==='function')updatePreview();}" />
+          </div>
+
           <!-- Sous-types Basse tension -->
           <div id="electriqueBTWrap" hidden style="margin-top:10px;">
             <div class="chips center" id="electriqueBTChips">
@@ -3670,6 +3754,10 @@ const state = {
 
   vlFuel: "",      // VL carburation
   vlPerimetre: "", // VL périmètre de sécurité 50 m
+  vlLocalisation: new Set(), // PARKING / VP / GENE / PAS_GENE / AUTRE
+  vlLocAutre: "",  // texte libre localisation VL
+  plLocalisation: new Set(), // PARKING / VP / GENE / PAS_GENE / CHAMP / CHANTIER_PRIVE / AUTRE
+  plLocAutre: "",  // texte libre localisation PL
   plType: "",
   plMarchandise: "",
   gazPerimetre: "",  // EN_COURS / REALISE
@@ -3683,6 +3771,8 @@ const state = {
 
   chemineAppareil: new Set(), // Foyer ouvert / Insert / Poêle à bois...
   chemineSymptomes: new Set(), // Flamme en tête / Ronflement / Fumée...
+  pvLocalisation: "", // TOIT_PLAT / TOITURE / SOL / BALCON / MUR
+  pvSuperficie: "",   // texte libre superficie PV
 
   poubelleType: "", // Poubelle (sous-type)
 
@@ -4678,7 +4768,10 @@ updateIncStepUI();
       state.incTypeLieu = v;
       const isOther = v === "Autre";
       if (typeOtherWrap) typeOtherWrap.hidden = !isOther;
-      if (isOther) setTimeout(() => (typeOtherInput && typeOtherInput.focus()), 0);
+      if (isOther) setTimeout(() => {
+        if (typeOtherWrap) typeOtherWrap.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (typeOtherInput) typeOtherInput.focus();
+      }, 80);
       else if (typeOtherInput) { typeOtherInput.value = ""; state.incTypeLieuOther = ""; }
       setActiveChips(typeRoot, b => b === btn);
       syncLineeLieuUi();
@@ -4805,6 +4898,31 @@ if (state.incTypeLieu === "Pavillon") { const p = $("#lieu_pavillon"); if (p) p.
     if (f) f.hidden = false;
   }
 
+  if (state.incTypeLieu === "Autre") {
+    const la = $("#lieu_autre");
+    if (la) la.hidden = false;
+    const detailInp = document.getElementById("incTypeLieuOtherDetail");
+    if (detailInp) {
+      detailInp.value = state.incTypeLieuOther || "";
+      // Wirer l'input si pas déjà fait
+      if (!detailInp._wired) {
+        detailInp._wired = true;
+        detailInp.addEventListener("input", function(){
+          state.incTypeLieuOther = this.value.trim();
+          // Sync avec l'autre input (étape type)
+          var other = document.getElementById("incTypeLieuOther");
+          if (other) other.value = state.incTypeLieuOther;
+          if (typeof updatePreview === "function") updatePreview();
+        });
+        // Focus + scroll au prochain tick
+        setTimeout(function(){
+          detailInp.focus();
+          detailInp.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 100);
+      }
+    }
+  }
+
   if (state.incTypeLieu === "Cheminée") {
     const ch = $("#lieu_cheminee");
     if (ch) ch.hidden = false;
@@ -4821,7 +4939,6 @@ if (state.incTypeLieu === "Pavillon") { const p = $("#lieu_pavillon"); if (p) p.
   if (state.incTypeLieu === "Electrique") {
     const e = $("#lieu_electrique");
     if (e) e.hidden = false;
-    // Sync chips et champ autre
     const chips = document.querySelectorAll('#electriqueChips .chip');
     chips.forEach(b => b.classList.toggle('active', b.dataset.chip === state.electriqueType));
     const autreWrap = $("#electriqueAutreWrap");
@@ -4834,6 +4951,18 @@ if (state.incTypeLieu === "Pavillon") { const p = $("#lieu_pavillon"); if (p) p.
     if(photoWrap) photoWrap.hidden = state.electriqueType !== 'Transformateur';
     const autreInput = $("#electriqueAutreInput");
     if(autreInput) autreInput.value = state.electriqueAutre || '';
+    // Photovoltaïque : panneaux localisation et superficie
+    const pvLoc = $("#pvLocalisationWrap");
+    const pvSup = $("#pvSuperficieWrap");
+    const isPV = state.electriqueType === 'Panneau photovoltaïque';
+    if(pvLoc) pvLoc.hidden = !isPV;
+    if(pvSup) pvSup.hidden = !isPV;
+    if(isPV){
+      document.querySelectorAll('#pvLocalisationChips .chip').forEach(b =>
+        b.classList.toggle('active', b.dataset.pvloc === state.pvLocalisation));
+      const pvSupInp = $("#pvSuperficieInput");
+      if(pvSupInp) pvSupInp.value = state.pvSuperficie || '';
+    }
   }
   if (state.incTypeLieu === "Transformateur") {
     const t = $("#lieu_transformateur");
@@ -6093,6 +6222,26 @@ function renderAgricoleDetails(){
       if(photoWrap) photoWrap.hidden = state.electriqueType !== 'Transformateur';
       const btWrap = document.getElementById('electriqueBTWrap');
       if(btWrap) btWrap.hidden = state.electriqueType !== 'Installation basse tension';
+      // Photovoltaïque
+      const isPV = state.electriqueType === 'Panneau photovoltaïque';
+      const pvLoc = document.getElementById('pvLocalisationWrap');
+      const pvSup = document.getElementById('pvSuperficieWrap');
+      if(pvLoc) pvLoc.hidden = !isPV;
+      if(pvSup) pvSup.hidden = !isPV;
+      if(!isPV){ state.pvLocalisation = ''; state.pvSuperficie = ''; }
+      updatePreview && updatePreview();
+    });
+  }
+
+  // Wiring chips localisation PV
+  const pvLocChips = document.getElementById('pvLocalisationChips');
+  if(pvLocChips){
+    pvLocChips.addEventListener('click', function(e){
+      const btn = e.target.closest('[data-pvloc]');
+      if(!btn) return;
+      state.pvLocalisation = state.pvLocalisation === btn.dataset.pvloc ? '' : btn.dataset.pvloc;
+      pvLocChips.querySelectorAll('[data-pvloc]').forEach(b =>
+        b.classList.toggle('active', b.dataset.pvloc === state.pvLocalisation));
       updatePreview && updatePreview();
     });
   }
@@ -6135,6 +6284,8 @@ function renderAgricoleDetails(){
   const confEl = document.getElementById("erp_confi_n");
   state.erpEvacN = state.erpEvacN || "";
   state.erpConfN = state.erpConfN || "";
+  if (!state.hasOwnProperty('erpSSI')) state.erpSSI = false;
+  if (!state.hasOwnProperty('erpAgents')) state.erpAgents = false;
 
   function sync(){
     if (typeEl) typeEl.value = state.erpType || "";
@@ -6142,6 +6293,10 @@ function renderAgricoleDetails(){
     if (surfEl) surfEl.value = state.erpSurface || "";
     if (evacEl) evacEl.value = state.erpEvacN || "";
     if (confEl) confEl.value = state.erpConfN || "";
+    const btnSSI = document.getElementById("btnErpSSI");
+    const btnAgt = document.getElementById("btnErpAgents");
+    if (btnSSI) btnSSI.classList.toggle("active", !!state.erpSSI);
+    if (btnAgt) btnAgt.classList.toggle("active", !!state.erpAgents);
   }
 
   typeEl && typeEl.addEventListener("change", () => { state.erpType = typeEl.value || ""; updatePreview && updatePreview(); });
@@ -6151,6 +6306,11 @@ function renderAgricoleDetails(){
   evacEl && evacEl.addEventListener("input", () => { state.erpEvacN = (evacEl.value || "").trim(); updatePreview && updatePreview(); });
   confEl && confEl.addEventListener("input", () => { state.erpConfN = (confEl.value || "").trim(); updatePreview && updatePreview(); });
 
+  const btnSSI = document.getElementById("btnErpSSI");
+  const btnAgt = document.getElementById("btnErpAgents");
+  btnSSI && btnSSI.addEventListener("click", () => { state.erpSSI = !state.erpSSI; sync(); updatePreview && updatePreview(); });
+  btnAgt && btnAgt.addEventListener("click", () => { state.erpAgents = !state.erpAgents; sync(); updatePreview && updatePreview(); });
+
   sync();
 })();
 
@@ -6158,6 +6318,10 @@ function renderAgricoleDetails(){
 (() => {
   const roots = [document.getElementById("pavFireLocChips"), document.getElementById("appFireLocChips")].filter(Boolean);
   const btns = [document.getElementById("btnPavPropagation"), document.getElementById("btnAppPropagation")].filter(Boolean);
+  const btnPV = document.getElementById("btnPavPhotovoltaique");
+  const toitureWrap = document.getElementById("pavToitureWrap");
+
+  if (!state.hasOwnProperty('pavToiturePhotovoltaique')) state.pavToiturePhotovoltaique = false;
 
   function sync(){
     roots.forEach(root => {
@@ -6166,6 +6330,11 @@ function renderAgricoleDetails(){
       });
     });
     btns.forEach(btn => btn.classList.toggle("active", !!state.incFirePropagation));
+    // Toiture : afficher/masquer sous-panneau PV
+    const isToiture = state.incFireLocation === "TOITURE";
+    if(toitureWrap) toitureWrap.hidden = !isToiture;
+    if(btnPV) btnPV.classList.toggle("active", !!state.pavToiturePhotovoltaique);
+    if(!isToiture) state.pavToiturePhotovoltaique = false;
   }
 
   roots.forEach(root => {
@@ -6186,6 +6355,14 @@ function renderAgricoleDetails(){
       updatePreview && updatePreview();
     });
   });
+
+  if(btnPV){
+    btnPV.addEventListener("click", () => {
+      state.pavToiturePhotovoltaique = !state.pavToiturePhotovoltaique;
+      btnPV.classList.toggle("active", state.pavToiturePhotovoltaique);
+      updatePreview && updatePreview();
+    });
+  }
 
   sync();
 })();
@@ -6716,6 +6893,36 @@ wireChipGroup("#vlPerimetreChips", (btn) => {
   updatePreview && updatePreview();
 });
 
+// Localisation VL — multi-sélection
+(function(){
+  const chipsEl = document.getElementById("vlLocalisationChips");
+  if (!chipsEl) return;
+  if (!state.vlLocalisation || !(state.vlLocalisation instanceof Set)) state.vlLocalisation = new Set();
+
+  function syncLocUI(){
+    chipsEl.querySelectorAll("[data-vlloc]").forEach(b => {
+      b.classList.toggle("active", state.vlLocalisation.has(b.dataset.vlloc));
+    });
+    const autreWrap = document.getElementById("vlLocAutreWrap");
+    if (autreWrap) autreWrap.hidden = !state.vlLocalisation.has("AUTRE");
+    const autreInp = document.getElementById("vlLocAutre");
+    if (autreInp) autreInp.value = state.vlLocAutre || "";
+  }
+
+  chipsEl.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-vlloc]");
+    if (!btn) return;
+    if (!(state.vlLocalisation instanceof Set)) state.vlLocalisation = new Set();
+    const v = btn.dataset.vlloc;
+    if (state.vlLocalisation.has(v)) state.vlLocalisation.delete(v);
+    else state.vlLocalisation.add(v);
+    syncLocUI();
+    updatePreview && updatePreview();
+  });
+
+  syncLocUI();
+})();
+
 (function syncVlPerimetreUi(){
   const vlPerimetreWrap = $("#vlPerimetreWrap");
   if (!vlPerimetreWrap) return;
@@ -6734,10 +6941,12 @@ wireChipGroup("#plTypeChips", (btn, v) => {
   const wrap = $("#plFuelWrap");
   const perimWrap = $("#plPerimetreWrap");
   const tmdWrap = $("#plTmdWrap");
+  const locBlock = document.getElementById("plLocalisationBlock");
   if (wrap) wrap.hidden = !state.plType;
   if (tmdWrap) tmdWrap.hidden = state.plType !== "TMD";
+  // Localisation disponible dès qu'un type est sélectionné
+  if (locBlock) locBlock.hidden = !state.plType;
   const marchandiseWrap = document.getElementById("plMarchandiseWrap");
-  // Afficher marchandise pour tous les types sauf TMD (qui a sa propre section cargaison)
   if (marchandiseWrap) marchandiseWrap.hidden = !state.plType || state.plType === "TMD";
 
   state.plFuel = "";
@@ -6777,6 +6986,36 @@ wireChipGroup("#plPerimetreChips", (btn) => {
   $$("#plPerimetreChips .chip").forEach(b => b.classList.toggle("active", b === btn && !!state.plPerimetre));
   updatePreview && updatePreview();
 });
+
+// Localisation PL — multi-sélection
+(function(){
+  const chipsEl = document.getElementById("plLocalisationChips");
+  if (!chipsEl) return;
+  if (!state.plLocalisation || !(state.plLocalisation instanceof Set)) state.plLocalisation = new Set();
+
+  function syncPlLocUI(){
+    chipsEl.querySelectorAll("[data-plloc]").forEach(b => {
+      b.classList.toggle("active", state.plLocalisation.has(b.dataset.plloc));
+    });
+    const autreWrap = document.getElementById("plLocAutreWrap");
+    if (autreWrap) autreWrap.hidden = !state.plLocalisation.has("AUTRE");
+    const autreInp = document.getElementById("plLocAutre");
+    if (autreInp) autreInp.value = state.plLocAutre || "";
+  }
+
+  chipsEl.addEventListener("click", (e) => {
+    const btn = e.target.closest("[data-plloc]");
+    if (!btn) return;
+    if (!(state.plLocalisation instanceof Set)) state.plLocalisation = new Set();
+    const v = btn.dataset.plloc;
+    if (state.plLocalisation.has(v)) state.plLocalisation.delete(v);
+    else state.plLocalisation.add(v);
+    syncPlLocUI();
+    updatePreview && updatePreview();
+  });
+
+  syncPlLocUI();
+})();
 
 (function syncPlPerimetreUi(){
   const plPerimetreWrap = $("#plPerimetreWrap");
@@ -7435,7 +7674,7 @@ function wireIncRensPro(){
       const statutChips = document.createElement("div");
       statutChips.className = "chips center";
       const statutOpts = [
-        ["en cours d'établissement", "En établissement"],
+        ["en cours d'établissement", "En cours d'établissement"],
         ["en manœuvre", "En manœuvre"],
         ["par intermittence", "Intermittence"],
         ["en attente", "En attente"]
@@ -7632,7 +7871,7 @@ function formatVictimesPhrase(n, arr){
     const v = victims[0] || {};
     const actLabel = mapAct(v.act);
     const cons = (v.cons || "").toUpperCase();
-    const statLabel = (v.stat || "").toUpperCase() === "REALISE" ? "réalisé" : "en cours";
+    const statLabel = (v.stat || "").toUpperCase() === "REALISE" ? "réalisé" : (v.stat || "").toUpperCase() === "EN_ATTENTE" ? "en attente" : "en cours";
     const consPart = cons === "CONSCIENTE" ? "consciente" : cons === "INCONSCIENTE" ? "inconsciente" : "";
 
     let phrase = "1 victime";
@@ -7711,8 +7950,15 @@ function buildIncAmbianceJeVois(){
   // Type / lieu (nouvelle UI)
   if (state.incTypeLieu){
     if (state.incTypeLieu === "Autre"){
-      // sortie courte: pas de libellé "Type/Lieu"
-      bits.push(state.incTypeLieuOther ? `Autre (${state.incTypeLieuOther})` : "Autre");
+      const precis = (state.incTypeLieuOther || "").trim();
+      bits.length = 0; // évite "Feu, Feu de X"
+      if (precis) {
+        const vowels = 'aeiouéèêëàâùûîïo';
+        const elide = vowels.includes(precis[0].toLowerCase());
+        bits.push(elide ? `Feu d'${precis}` : `Feu de ${precis}`);
+      } else {
+        bits.push("Feu (à préciser)");
+      }
     } else {
       bits.push(state.incTypeLieu);
     }
@@ -7879,15 +8125,17 @@ if (state.incTypeLieu === "FEN"){
     if (state.pavComblesAmenagesOn) txt += " avec combles aménagés";
 
     const locMap = {
-      RDC: "feu au rez-de-chaussée",
-      ETAGE: "feu à l'étage",
-      COMBLES: "feu dans les combles",
-      CUISINE: "feu dans la cuisine",
-      SALON: "feu dans le salon",
-      CHAMBRE: "feu dans une chambre",
-      BUANDERIE: "feu dans la buanderie"
+      RDC:      "feu au rez-de-chaussée",
+      ETAGE:    "feu à l'étage",
+      COMBLES:  "feu dans les combles",
+      TOITURE:  "feu en toiture",
+      CUISINE:  "feu dans la cuisine",
+      SALON:    "feu dans le salon",
+      CHAMBRE:  "feu dans une chambre",
+      BUANDERIE:"feu dans la buanderie"
     };
     if (state.incFireLocation && locMap[state.incFireLocation]) txt += `, ${locMap[state.incFireLocation]}`;
+    if (state.incFireLocation === "TOITURE" && state.pavToiturePhotovoltaique) txt += ", présence de panneaux photovoltaïques";
     if (state.incFirePropagation) txt += (state.pavComblesOn || state.pavComblesAmenagesOn) && state.incFireLocation !== "COMBLES"
       ? ", risque de propagation aux combles"
       : ", risque de propagation";
@@ -7970,6 +8218,8 @@ if (state.incTypeLieu === "FEN"){
       const conf = (state.erpConfN || "").trim();
       if (hasVal(evac)) bits.push(`${evac} évacué${evac==="1"?"":"s"}`);
       if (hasVal(conf)) bits.push(`${conf} confiné${conf==="1"?"":"s"}`);
+      if (state.erpSSI) bits.push("SSI déclenché");
+      if (state.erpAgents) bits.push("agents de sécurité sur les lieux");
     }
   })();
 
@@ -8060,7 +8310,21 @@ if (state.incTypeLieu === "FEN"){
     bits.length = 0;
     const elecType = (state.electriqueType || "").trim();
     if (elecType === "Panneau photovoltaïque"){
-      bits.push("Feu de panneau photovoltaïque");
+      const pvLocMap = {
+        TOIT_PLAT: "sur toit plat",
+        TOITURE:   "sur toiture",
+        SOL:       "au sol",
+        BALCON:    "sur balcon",
+        MUR:       "contre un mur"
+      };
+      let pvPhrase = "Feu de panneau photovoltaïque";
+      if (state.pvLocalisation && pvLocMap[state.pvLocalisation]) {
+        pvPhrase += `, ${pvLocMap[state.pvLocalisation]}`;
+      }
+      if ((state.pvSuperficie || "").trim()) {
+        pvPhrase += `, superficie : ${state.pvSuperficie.trim()}`;
+      }
+      bits.push(pvPhrase);
     } else if (elecType === "Transformateur"){
       const poste = (state.electriqueTransfoPoste || state.transfoPoste || "").trim();
       if (poste) bits.push(`Feu de transformateur, poste ${poste}`);
@@ -8081,51 +8345,82 @@ if (state.incTypeLieu === "FEN"){
   // Détails VL / PL
   if (state.incTypeLieu === "VL"){
     const fuel = (state.vlFuel || "").trim();
+    const vlFuelLabel = ['GNR','GNV','GPL','GNC','LPG'].includes(fuel.toUpperCase()) ? fuel.toUpperCase() : fuel.toLowerCase();
     let vlTxt = "Feu de VL";
-    if (fuel) vlTxt += ` carburation ${fuel}`;
+    if (fuel) vlTxt += ` carburation ${vlFuelLabel}`;
     bits.length = 0;
     bits.push(vlTxt);
+
+    // Localisation
+    const locSet = (state.vlLocalisation instanceof Set) ? state.vlLocalisation : new Set();
+    const locMap = {
+      PARKING:  "sur un parking",
+      VP:             "sur voie publique",
+      VOIE_PRIVEE:    "sur voie privée",
+      GENE:     "avec gêne à la circulation",
+      PAS_GENE: "sans gêne à la circulation",
+      AUTRE:    state.vlLocAutre ? state.vlLocAutre.toLowerCase() : "localisation autre"
+    };
+    const locParts = [...locSet].map(k => locMap[k]).filter(Boolean);
+    if (locParts.length) bits.push(locParts.join(", "));
   }
 
   if (state.incTypeLieu === "PL"){
-    const d = [];
-    if (state.plType){
-      if (state.plType === "TMD") d.push("TMD");
-      else d.push(state.plType.toLowerCase());
+    // Carte des labels PL
+    const plTypeLabel = {
+      'BENNE':'benne', 'SEMI-REMORQUE':'semi-remorque', 'FRIGORIFIQUE':'frigorifique',
+      'PLATEAU':'plateau', 'CAMIONETTE':'camionnette', 'BÂCHE':'bâché',
+      'CITERNE':'citerne', 'TMD':'PL-TMD',
+      'ENGIN_AGRICOLE':'engin agricole', 'ENGIN_CHANTIER':'engin de chantier'
+    };
+    // Élision : "Feu d'" devant voyelle, "Feu de " sinon
+    const plElide = (label) => {
+      const vowels = 'aeiouéèêëàâùûîïo';
+      return vowels.includes((label||'')[0].toLowerCase()) ? `Feu d'${label}` : `Feu de ${label}`;
+    };
+    // Carburation : garder les acronymes en majuscules
+    const plFuelLabel = (f) => ['GNR','GNV','GPL','GNC','LPG'].includes((f||'').toUpperCase()) ? (f||'').toUpperCase() : (f||'').toLowerCase();
+
+    bits.length = 0;
+    let plPhrase = "Feu de PL";
+
+    if (state.plType) {
+      const label = plTypeLabel[state.plType] || state.plType.toLowerCase();
+      plPhrase = plElide(label);
     }
-    if ((state.plMarchandise || "").trim() && state.plType !== "TMD"){
-      d.push(`chargé de ${state.plMarchandise.trim()}`);
-    }
-    if (state.plFuel) d.push(`carburation ${state.plFuel.toLowerCase()}`);
-    if (state.plType === "TMD"){
+
+    // Marchandise
+    const plM = (state.plMarchandise || "").trim();
+    if (plM && state.plType !== "TMD") plPhrase += ` chargé de ${plM}`;
+
+    // TMD
+    if (state.plType === "TMD") {
       const tmdBits = [];
-      if ((state.plTmdCargo || "").trim()) tmdBits.push((state.plTmdCargo || "").trim());
+      if ((state.plTmdCargo || "").trim()) tmdBits.push(state.plTmdCargo.trim());
       if ((state.plTmdDanger || "").trim()) tmdBits.push(`code danger ${state.plTmdDanger.trim()}`);
       if ((state.plTmdMatter || "").trim()) tmdBits.push(`code matière ${state.plTmdMatter.trim()}`);
-      if (tmdBits.length) d.push(tmdBits.join(", "));
+      if (tmdBits.length) plPhrase += ", " + tmdBits.join(", ");
     }
-    bits.length = 0;
-    if (d.length) {
-      // Construire une phrase naturelle
-      let plPhrase = "Feu de PL";
-      // Type
-      const plT = (state.plType && state.plType !== "TMD") ? state.plType.toLowerCase() : "";
-      if (plT) plPhrase = `Feu de ${plT}`;
-      // Marchandise
-      const plM = (state.plMarchandise || "").trim();
-      if (plM) plPhrase += ` chargé de ${plM}`;
-      // TMD
-      if (state.plType === "TMD") {
-        plPhrase = "Feu de PL-TMD";
-        const tmdBits = d.filter(x => x !== "TMD" && !x.startsWith("carburation"));
-        if (tmdBits.length) plPhrase += ", " + tmdBits.join(", ");
-      }
-      // Carburation
-      if (state.plFuel) plPhrase += `, carburation ${state.plFuel.toLowerCase()}`;
-      bits.push(plPhrase);
-    } else {
-      bits.push("Feu de PL");
-    }
+
+    // Carburation
+    if (state.plFuel) plPhrase += `, carburation ${plFuelLabel(state.plFuel)}`;
+
+    bits.push(plPhrase);
+
+    // Localisation PL
+    const plLocSet = (state.plLocalisation instanceof Set) ? state.plLocalisation : new Set();
+    const plLocMap = {
+      PARKING:        "sur un parking",
+      VP:             "sur voie publique",
+      VOIE_PRIVEE:    "sur voie privée",
+      GENE:           "avec gêne à la circulation",
+      PAS_GENE:       "sans gêne à la circulation",
+      CHAMP:          "dans un champ",
+      CHANTIER_PRIVE: "sur chantier privé",
+      AUTRE:          state.plLocAutre ? state.plLocAutre.toLowerCase() : "localisation autre"
+    };
+    const plLocParts = [...plLocSet].map(k => plLocMap[k]).filter(Boolean);
+    if (plLocParts.length) bits.push(plLocParts.join(", "));
   }
 
 
@@ -8179,9 +8474,9 @@ if (state.incTypeLieu === "FEN"){
       if(a === "SORTIE FDO") return "sortie par les forces de l'ordre";
       return a ? a.toLowerCase() : "";
     };
-    const statWord = (st)=> (st === "REALISE") ? "réalisé" : (st === "EN COURS") ? "en cours" : "";
+    const statWord = (st)=> (st === "REALISE") ? "réalisé" : (st === "EN COURS") ? "en cours" : (st === "EN_ATTENTE") ? "en attente" : "";
     const orderAct = {"SAUVETAGE":0,"MISE EN SECURITE":1};
-    const orderStat = {"EN COURS":0,"REALISE":1};
+    const orderStat = {"EN COURS":0,"EN_ATTENTE":1,"REALISE":2};
 
     const entries = [...groups.entries()].map(([k,c])=>{
       const [a,st] = k.split("|");
@@ -8252,6 +8547,7 @@ if (state.incTypeLieu === "FEN"){
 
   if (!bits.length) return "(à préciser)";
   return bits
+    .filter(b => b !== null && b !== undefined && String(b).trim() !== "" && String(b).trim() !== "0")
     .join(" — ")
     .replace(/\s*—\s*/g, ", ")
     .replace(/,\s*(pas de victime|victime à préciser|victime signalée|sauvetage d'une victime[^,.;]*|sauvetage de \d+ victimes[^,.;]*|mise en sécurité d'une victime[^,.;]*|mise en sécurité de \d+ victimes[^,.;]*)/gi, ", $1")
@@ -9085,20 +9381,19 @@ function closeAvpTmdModal(){
 }
 function avpAccLabel(a, veh){
   const map = {
-    "SEUL":"Accident seul",
-    "FRONTAL":"Choc frontal",
-    "ARRIERE":"Choc arrière",
-    "LATERAL":"Choc latéral",
-    "OBSTACLE":"Contre obstacle",
-    "TONNEAUX":"Tonneaux"
+    "SEUL":     "accident seul",
+    "FRONTAL":  "choc frontal",
+    "ARRIERE":  "choc arrière",
+    "LATERAL":  "choc latéral",
+    "TONNEAUX": "avec tonneaux"
   };
   if (a === "OBSTACLE" && veh) {
     const OBSTACLE_LABELS = {
-      "MUR": "contre un mur",
+      "MUR":         "contre un mur",
       "POTEAU_ELEC": "contre un poteau électrique",
-      "POTEAU_TEL": "contre un poteau téléphonique",
-      "CANDELABRE": "contre un candélabre",
-      "AUTRE": veh.obstacleAutre ? "contre " + veh.obstacleAutre : "contre obstacle"
+      "POTEAU_TEL":  "contre un poteau téléphonique",
+      "CANDELABRE":  "contre un candélabre",
+      "AUTRE":       veh.obstacleAutre ? "contre " + veh.obstacleAutre : "contre obstacle"
     };
     if (veh.obstacleType && OBSTACLE_LABELS[veh.obstacleType]) {
       return OBSTACLE_LABELS[veh.obstacleType];
@@ -9109,16 +9404,39 @@ function avpAccLabel(a, veh){
 }
 function avpPosLabel(p){
   const map = {
-    "ROUES":"sur ses roues",
-    "COTE":"sur le côté",
-    "TOIT":"sur le toit",
-    "FOSSE":"dans un fossé",
-    "CONTREBAS":"en contrebas",
-    "CHAUSSEE":"sur chaussée",
-    "VOIEOPP":"sur voie opposée",
+    "ROUES":        "sur ses roues",
+    "COTE":         "sur le côté",
+    "TOIT":         "sur le toit",
+    "FOSSE":        "dans un fossé",
+    "CONTREBAS":    "en contrebas",
+    "CHAUSSEE":     "sur chaussée",
+    "VOIEOPP":      "sur voie opposée",
     "APPUI_LATERAL":"en appui latéral instable"
   };
   return map[p] || "";
+}
+
+// Assemble accidents + positions en une phrase fluide
+// ex: "en accident seul avec tonneaux, retrouvé sur le côté"
+function avpAccPosPhrase(v){
+  const accs = avpArrayify(v.accidents).map(a => avpAccLabel(a, v)).filter(Boolean).map(x=>x.toLowerCase());
+  const poss = avpArrayify(v.positions).map(avpPosLabel).filter(Boolean).map(x=>x.toLowerCase());
+  const parts = [];
+
+  if (accs.length) {
+    // Séparer "avec tonneaux" du reste pour meilleure intégration
+    const avecTonneaux = accs.filter(a => a === "avec tonneaux");
+    const autresAcc    = accs.filter(a => a !== "avec tonneaux");
+    let accPhrase = autresAcc.length ? autresAcc.join(" et ") : "";
+    if (avecTonneaux.length) accPhrase = accPhrase ? accPhrase + " avec tonneaux" : "avec tonneaux";
+    if (accPhrase) parts.push(accPhrase);
+  }
+  if (poss.length) {
+    const posPhrase = avpJoinNatural(poss, ', ', ' et ');
+    // "retrouvé" si on a déjà un contexte d'accident, sinon direct
+    parts.push((accs.length ? "retrouvé " : "") + posPhrase);
+  }
+  return parts.join(", ");
 }
 function avpArrayify(v){
   if (Array.isArray(v)) return [...new Set(v.map(x => String(x||"").trim()).filter(Boolean))];
@@ -9791,10 +10109,8 @@ function buildAvpAmbianceJeVois(){
       if (cargo) sentence += ` ${cargo}`;
       const adr = avpAdrPhrase(v);
       if (adr) sentence += ` (${adr})`;
-      const accidents = avpArrayify(v.accidents).map(a => avpAccLabel(a, v)).filter(Boolean).map(x=>x.toLowerCase());
-      const positions  = avpArrayify(v.positions).map(avpPosLabel).filter(Boolean).map(x=>x.toLowerCase());
-      if (accidents.length) sentence += `, en ${avpJoinNatural(accidents, ', ', ' et ')}`;
-      if (positions.length)  sentence += `, ${avpJoinNatural(positions,  ', ', ' et ')}`;
+      const accPos1 = avpAccPosPhrase(v);
+      if (accPos1) sentence += `, ${accPos1}`;
     }
     bits.push(sentence);
   } else {
@@ -9825,12 +10141,10 @@ function buildAvpAmbianceJeVois(){
           noun = v.type ? avpVehicleNoun(v, 0) : 'véhicule';
           const cargo = avpCargoPhrase(v);
           const adr = avpAdrPhrase(v);
-          const accidents = avpArrayify(v.accidents).map(a => avpAccLabel(a, v)).filter(Boolean).map(x=>x.toLowerCase());
-          const positions  = avpArrayify(v.positions).map(avpPosLabel).filter(Boolean).map(x=>x.toLowerCase());
           if (cargo) detail += ` ${cargo}`;
           if (adr) detail += ` (${adr})`;
-          if (accidents.length) detail += `, en ${avpJoinNatural(accidents, ', ', ' et ')}`;
-          if (positions.length)  detail += `, ${avpJoinNatural(positions,  ', ', ' et ')}`;
+          const accPosStr = avpAccPosPhrase(v);
+          if (accPosStr) detail += `, ${accPosStr}`;
         }
         // Grouper si même noun ET pas de détail spécifique
         const last = groups[groups.length - 1];
@@ -10162,7 +10476,7 @@ function buildRensVictimesSummary(){
     return "";
   };
   const actWord = (a)=> (a === "SAUVETAGE") ? "Sauvetage" : "Mise en sécurité";
-  const statWord = (st)=> (st === "REALISE") ? "réalisé" : "en cours";
+  const statWord = (st)=> (st === "REALISE") ? "réalisé" : (st === "EN_ATTENTE") ? "en attente" : "en cours";
   const orderAct = {"SAUVETAGE":0,"MISE EN SECURITE":1};
   const orderStat = {"EN COURS":0,"REALISE":1};
 
@@ -10347,6 +10661,7 @@ function renderRensVictimes(){
             <div class="vict-actions">
               <button class="chip vic-status" type="button" data-vset="${idx}" data-vfield="stat" data-vvalue="EN COURS" data-vict-status="EN COURS">En cours</button>
               <button class="chip vic-status" type="button" data-vset="${idx}" data-vfield="stat" data-vvalue="REALISE" data-vict-status="REALISE">Réalisé</button>
+              <button class="chip vic-status" type="button" data-vset="${idx}" data-vfield="stat" data-vvalue="EN_ATTENTE" data-vict-status="EN_ATTENTE">⏳ En attente</button>
             </div>
           </div>
         </div>
@@ -12114,6 +12429,7 @@ window.addEventListener("beforeunload", cleanupUrls);
             <div class="vict-actions">
               <button class="chip vic-status" type="button" data-iset="${idx}" data-ifield="stat" data-ivalue="EN COURS" data-vict-status="EN COURS">En cours</button>
               <button class="chip vic-status" type="button" data-iset="${idx}" data-ifield="stat" data-ivalue="REALISE" data-vict-status="REALISE">Réalisé</button>
+              <button class="chip vic-status" type="button" data-iset="${idx}" data-ifield="stat" data-ivalue="EN_ATTENTE" data-vict-status="EN_ATTENTE">⏳ En attente</button>
             </div>
           </div>
         </div>
@@ -12428,11 +12744,29 @@ try{ refreshGlobalCards(); }catch(e){}
     VL:'VL', MOTO:'2 roues', PL:'PL', BUS:'bus/car', AGRICOLE:'Engin agricole', VELO:'Vélo / Trottinette', PIETON:'Piéton', AUTRE:'Autre'
   };
   const ACC_LABEL = {
-    SEUL:'accident seul', FRONTAL:'choc frontal', ARRIERE:'choc arrière', LATERAL:'choc latéral', OBSTACLE:'contre obstacle', TONNEAUX:'tonneaux'
+    SEUL:'accident seul', FRONTAL:'choc frontal', ARRIERE:'choc arrière', LATERAL:'choc latéral', OBSTACLE:'contre obstacle', TONNEAUX:'avec tonneaux'
   };
   const POS_LABEL = {
     ROUES:'sur ses roues', COTE:'sur le côté', TOIT:'sur le toit', FOSSE:'dans un fossé', CONTREBAS:'en contrebas', CHAUSSEE:'sur chaussée', VOIEOPP:'sur voie opposée', APPUI_LATERAL:'en appui latéral instable'
   };
+
+  // Helper acc+pos fluide (partagé mobile)
+  function accPosPhraseM(v){
+    var accsRaw = uniq((v.accidents||[]).map(function(a){ return ACC_LABEL[a]||''; })).filter(Boolean);
+    var poss = uniq((v.positions||[]).map(function(p){ return POS_LABEL[p]||''; })).filter(Boolean);
+    var parts = [];
+    if(accsRaw.length){
+      var avecT = accsRaw.filter(function(a){ return a === 'avec tonneaux'; });
+      var autres = accsRaw.filter(function(a){ return a !== 'avec tonneaux'; });
+      var accPhr = autres.join(' et ');
+      if(avecT.length) accPhr = accPhr ? accPhr + ' avec tonneaux' : 'avec tonneaux';
+      if(accPhr) parts.push(accPhr);
+    }
+    if(poss.length){
+      parts.push((accsRaw.length ? 'retrouvé ' : '') + poss.join(' et '));
+    }
+    return parts.join(', ');
+}
 
   function readStateVehicles(){
     ensureState();
@@ -12584,10 +12918,8 @@ try{ refreshGlobalCards(); }catch(e){}
       if(!isPietSingle){
         var cargo0 = String(v0.cargo||'').trim();
         if(cargo0) sentence += ' transportant ' + cargo0;
-        var accs0 = uniq((v0.accidents||[]).map(function(a){ return ACC_LABEL[a]||''; })).filter(Boolean);
-        var poss0 = uniq((v0.positions||[]).map(function(p){ return POS_LABEL[p]||''; })).filter(Boolean);
-        if(accs0.length) sentence += ', en ' + accs0.join(' et ');
-        if(poss0.length) sentence += ', ' + poss0.join(' et ');
+        var accPos0 = accPosPhraseM(v0);
+        if(accPos0) sentence += ', ' + accPos0;
       }
       bits.push(sentence);
     } else {
@@ -12615,11 +12947,9 @@ try{ refreshGlobalCards(); }catch(e){}
           } else {
             noun = TYPE_LABEL[v.type] || 'véhicule';
             var cargo = String(v.cargo||'').trim();
-            var accs = uniq((v.accidents||[]).map(function(a){ return ACC_LABEL[a]||''; })).filter(Boolean);
-            var poss = uniq((v.positions||[]).map(function(p){ return POS_LABEL[p]||''; })).filter(Boolean);
             if(cargo) detail += ' transportant ' + cargo;
-            if(accs.length) detail += ', en ' + accs.join(' et ');
-            if(poss.length) detail += ', ' + poss.join(' et ');
+            var accPosM = accPosPhraseM(v);
+            if(accPosM) detail += ', ' + accPosM;
           }
           var last = groupsMB[groupsMB.length - 1];
           if(last && last.noun === noun && !detail && !last.detail){
@@ -13214,19 +13544,22 @@ try{ refreshGlobalCards(); }catch(e){}
     /* Auto-fill Je suis */
     var adr=byId('mf_adr'), s=byId('mw_suis');
     if(adr&&adr.value.trim()&&s&&!s.value.trim()){ s.value=adr.value.trim(); mwSuis(adr.value.trim()); }
-    /* Téléporter le bloc victime une seule fois */
-    /* Basculer sur ambiance dans l'appli */
-    var t=q('.tab[data-tab="ambiance"]'); if(t) t.click();
+    /* Masquer la feuille de départ */
     byId('mobFeuille').classList.add('off');
+    byId('mobHome').classList.add('off');
     S.step=0;
+    /* Activer le wizard AVANT le tab click pour éviter le retour accueil */
     mobWizOn();
     /* Initialiser les chips SP */
     buildSpChips();
-    // Safari iOS : requestAnimationFrame pour s'assurer que le DOM est prêt
+    /* Basculer sur ambiance dans l'appli (après mobWizOn) */
     requestAnimationFrame(function(){
-      teleportVict();
+      var t=q('.tab[data-tab="ambiance"]'); if(t) t.click();
       requestAnimationFrame(function(){
-        mwRender();
+        teleportVict();
+        requestAnimationFrame(function(){
+          mwRender();
+        });
       });
     });
   };
@@ -14938,6 +15271,12 @@ try{ refreshGlobalCards(); }catch(e){}
     state.electriqueBTType = '';
     state.chemineAppareil = new Set();
     state.chemineSymptomes = new Set();
+    state.pvLocalisation = '';
+    state.pvSuperficie = '';
+    state.vlLocalisation = new Set();
+    state.vlLocAutre = '';
+    state.plLocalisation = new Set();
+    state.plLocAutre = '';
     state.gazEvacuation = 0;
     state.lieuEvac = {};
     state.lieuConf = {};

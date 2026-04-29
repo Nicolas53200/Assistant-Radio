@@ -182,6 +182,8 @@ body.wiz-s2[data-mtype="AVP"] #panelAmbiance > *:not(#avpAmbJeVois):not(#avpAmbi
 body.wiz-s2[data-mtype="AVP"] #avpAmbJeVois,
 body.wiz-s2[data-mtype="AVP"] #avpAmbianceSiteCard,
 body.wiz-s2[data-mtype="AVP"] #avpPhotoCard { display:block !important; }
+/* Masquer avpAmbianceSiteCard quand on est sur la fiche d'un usager (avp-veh-step) */
+body.wiz-s2[data-mtype="AVP"].avp-veh-step #avpAmbianceSiteCard { display:none !important; }
 
 /* Fil d'Ariane AVP : 2 sous-étapes */
 #mobAvpBar { position:fixed; top:80px; left:0; right:0; z-index:4998; background:#0a0e1a; border-bottom:2px solid rgba(255,255,255,.1); padding:8px 14px; display:none; align-items:center; gap:8px; }
@@ -1790,6 +1792,7 @@ section.card[data-card="photosInterv"]{
 <!-- ========== FOOTER WIZARD ========== -->
 <div id="mobWizFooter" class="off">
   <button class="btn" id="mwBtnPrev" onclick="mwPrev()" style="display:none">← Retour</button>
+  <button class="btn" id="mwBtnAvpNext" onclick="mwAvpNextUsager()" style="display:none;background:#1e3a5f;border-color:#3b82f6;color:#fff;font-size:16px;">Usager suivant →</button>
   <button class="btn primary" id="mwBtnNext" onclick="mwNext()">Étape suivante →</button>
 </div>
 
@@ -9511,6 +9514,33 @@ function setAvpStep(step){
   state.avpStep = s;
   window._avpActiveVeh = s>0 ? s-1 : 0;
 
+  // Classe CSS : masquer avpAmbianceSiteCard quand sur fiche usager
+  if (s > 0) {
+    document.body.classList.add('avp-veh-step');
+    var siteCard = document.getElementById('avpAmbianceSiteCard');
+    if (siteCard) { siteCard.style.setProperty('display','none','important'); siteCard.hidden = true; }
+  } else {
+    document.body.classList.remove('avp-veh-step');
+    var siteCard2 = document.getElementById('avpAmbianceSiteCard');
+    if (siteCard2) { siteCard2.removeAttribute('hidden'); siteCard2.style.removeProperty('display'); }
+  }
+
+  // Mettre à jour le bouton Usager suivant dans le footer
+  var avpNB = document.getElementById('mwBtnAvpNext');
+  if (avpNB) {
+    var nbV = (state.avpVehicles||[]).length;
+    var showNext = s > 0 && s < nbV;
+    var AVPCOLORS = ['#3b82f6','#f59e0b','#22c55e','#ef4444','#a855f7'];
+    avpNB.style.display = showNext ? '' : 'none';
+    if (showNext) {
+      var nextColor = AVPCOLORS[s % AVPCOLORS.length]; // couleur de l'usager suivant
+      avpNB.textContent = 'Usager ' + (s+1) + ' →';
+      avpNB.style.background = nextColor + '22';
+      avpNB.style.borderColor = nextColor;
+      avpNB.style.color = '#fff';
+    }
+  }
+
   // Afficher la bonne div
   var s0=document.getElementById('avpStep0'), s1=document.getElementById('avpStep1');
   if(s0) s0.hidden = (s!==0);
@@ -9562,11 +9592,31 @@ function renderAvpVehiclesList(){
 
     const el = document.createElement("div");
     el.className = "subcard tight";
+    // Évaluer si l'usager est suffisamment rempli
+    const PIET_T = ['PIETON','VELO','TROTTINETTE'];
+    const isPiet = PIET_T.includes(v.type);
+    const hasType = !!v.type;
+    const hasAcc  = isPiet ? true : avpArrayify(v.accidents).length > 0;
+    const hasPos  = isPiet ? true : avpArrayify(v.positions).length > 0;
+    const isComplete = hasType && hasAcc && hasPos;
+    const badge = isComplete
+      ? `<span style="color:#22c55e;font-size:15px;">✅</span>`
+      : `<span style="color:#f59e0b;font-size:15px;" title="Usager incomplet">⚠️</span>`;
+    const missing = [];
+    if (!hasType) missing.push("type");
+    if (!hasAcc) missing.push("type d'accident");
+    if (!hasPos) missing.push("position");
+    const missingTxt = missing.length ? `<div style="font-size:11px;color:#f59e0b;margin-top:4px;">À compléter : ${missing.join(", ")}</div>` : '';
+
     el.innerHTML = `
-      <div class="subcard-title">Véhicule ${i+1}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div class="subcard-title">Usager ${i+1}</div>
+        ${badge}
+      </div>
       <div class="muted">${type}${cargo ? ` — ${cargo}` : ""}${adr ? ` — ${adr}` : ""} — ${acc} — ${pos} — ${vic}${extra ? ` (dont ${extra})` : ""}</div>
+      ${missingTxt}
       <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:10px; flex-wrap:wrap">
-        <button class="btn small" type="button" data-avp-act="edit" data-i="${i}">✏️ Éditer</button>
+        <button class="btn small" type="button" data-avp-act="edit" data-i="${i}" style="${!isComplete ? 'border-color:rgba(245,158,11,.6);' : ''}">✏️ Compléter</button>
         <button class="btn small" type="button" data-avp-act="del" data-i="${i}">🗑️ Supprimer</button>
       </div>
     `;
@@ -9579,15 +9629,27 @@ function renderAvpVehiclesList(){
       const i = parseInt(btn.dataset.i, 10);
       if (act === "del"){
         state.avpVehicles.splice(i, 1);
-        // Rester sur étape 0 et recalculer
         setAvpStep(0);
       } else if (act === "edit"){
-        // Aller sur la fiche du véhicule i : étape i+1
         window._avpActiveVeh = i;
         setAvpStep(i + 1);
       }
     });
   });
+
+  // Bandeau de rappel si usagers incomplets
+  const PIET_T2 = ['PIETON','VELO','TROTTINETTE'];
+  const incomplets2 = state.avpVehicles.filter((v,i) => {
+    const isPiet = PIET_T2.includes(v.type);
+    const ok = !!v.type && (isPiet || avpArrayify(v.accidents).length > 0) && (isPiet || avpArrayify(v.positions).length > 0);
+    return !ok;
+  });
+  if (incomplets2.length > 0) {
+    const banner = document.createElement("div");
+    banner.style.cssText = "background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.4);border-radius:12px;padding:10px 14px;margin-top:12px;font-size:13px;color:#f59e0b;font-weight:700;";
+    banner.textContent = `⚠️ ${incomplets2.length} usager${incomplets2.length > 1 ? 's' : ''} à compléter — clique sur "Compléter" pour renseigner le type, l'accident et la position.`;
+    host.appendChild(banner);
+  }
 }
 
 function renderAvpVehiclesEditor(){
@@ -9628,14 +9690,37 @@ function renderAvpVehiclesEditor(){
   const clampedIdx = Math.max(0, Math.min(activeIdx, state.avpVehicles.length - 1));
   const rawVeh = state.avpVehicles[clampedIdx];
   if(!rawVeh){ host.innerHTML = '<div class="muted">Aucun véhicule.</div>'; return; }
+
+  // Palette de couleurs par usager (distinctives, accessibles)
+  const USAGER_COLORS = [
+    { border: '#3b82f6', bg: 'rgba(59,130,246,.08)',  text: '#60a5fa', name: '🔵' }, // bleu
+    { border: '#f59e0b', bg: 'rgba(245,158,11,.08)',  text: '#fbbf24', name: '🟡' }, // jaune
+    { border: '#22c55e', bg: 'rgba(34,197,94,.08)',   text: '#4ade80', name: '🟢' }, // vert
+    { border: '#ef4444', bg: 'rgba(239,68,68,.08)',   text: '#f87171', name: '🔴' }, // rouge
+    { border: '#a855f7', bg: 'rgba(168,85,247,.08)',  text: '#c084fc', name: '🟣' }, // violet
+  ];
+
   host.innerHTML = [rawVeh].map((raw) => {
     const i = clampedIdx;
     const v = state.avpVehicles[i] = avpNormalizeVeh(raw);
     const total = avpVictimCount(v);
     const totalOpts = Array.from({length: Math.max(total, 0)}, (_,k)=>`<option value="${k+1}">${k+1}</option>`).join('');
+    const nbTotal = state.avpVehicles.length;
+    const col = USAGER_COLORS[i % USAGER_COLORS.length];
+
+    // Barre de progression usagers
+    const progressDots = Array.from({length: nbTotal}, (_,k) => {
+      const c = USAGER_COLORS[k % USAGER_COLORS.length];
+      const isActive = k === i;
+      return `<div style="width:${isActive?28:10}px;height:10px;border-radius:5px;background:${isActive?c.border:'rgba(255,255,255,.2)'};transition:all .2s;"></div>`;
+    }).join('');
+
     return `
-      <div class="subcard" data-avp-veh-card="${i}">
-        <div class="subcard-title">Usager ${i+1}</div>
+      <div class="subcard" data-avp-veh-card="${i}" style="border:2px solid ${col.border};background:${col.bg};">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <div style="font-size:18px;font-weight:900;color:${col.text};">${col.name} Usager ${i+1} <span style="font-size:13px;opacity:.7;">/ ${nbTotal}</span></div>
+          <div style="display:flex;gap:5px;align-items:center;">${progressDots}</div>
+        </div>
         <div style="display:grid; gap:10px;">
           <div class="subcard tight">
             <div class="subcard-title">Type de moyen</div>
@@ -10178,7 +10263,46 @@ function wireAvpAmbiance(){
   if (next) next.addEventListener("click", function(e){
     e.stopPropagation();
     ensureAvpState();
-    setAvpStep((state.avpStep||0)+1);
+    const currentStep = state.avpStep || 0;
+    const nbVeh = (state.avpVehicles||[]).length;
+    const isLastVehStep = currentStep === nbVeh; // dernière fiche usager → va vers synthèse
+    const isStep0 = currentStep === 0;
+
+    // Vérification : depuis l'étape 0 (liste), avant d'avancer, vérifier que chaque usager a au moins un type
+    if (isStep0 && nbVeh > 0) {
+      const PIET_T = ['PIETON','VELO','TROTTINETTE'];
+      const incomplets = state.avpVehicles.map((v,i) => {
+        const isPiet = PIET_T.includes(v.type);
+        const hasType = !!v.type;
+        const hasAcc = isPiet || avpArrayify(v.accidents).length > 0;
+        const hasPos = isPiet || avpArrayify(v.positions).length > 0;
+        return (!hasType || !hasAcc || !hasPos) ? i+1 : null;
+      }).filter(Boolean);
+
+      if (incomplets.length > 0) {
+        // Afficher alerte visuelle non-bloquante
+        const msg = incomplets.length === 1
+          ? `Usager ${incomplets[0]} non complété — tu peux continuer ou revenir l'éditer.`
+          : `Usagers ${incomplets.join(", ")} non complétés — tu peux continuer ou revenir les éditer.`;
+        if (typeof toast === "function") toast("⚠️ " + msg);
+        // Highlight les usagers incomplets
+        const host = document.getElementById("avpVehiclesList");
+        if (host) {
+          host.querySelectorAll(".subcard.tight").forEach((card, idx) => {
+            if (incomplets.includes(idx+1)) {
+              card.style.border = "2px solid rgba(245,158,11,.7)";
+              card.style.animation = "none";
+              setTimeout(() => { card.style.border = ""; }, 3000);
+            }
+          });
+        }
+        // Laisser quand même avancer après 1 seconde (non-bloquant)
+        setTimeout(() => setAvpStep(currentStep + 1), 400);
+        return;
+      }
+    }
+
+    setAvpStep(currentStep + 1);
   });
 
   const add = $("#avpAddVeh");
@@ -11200,7 +11324,13 @@ function formatMessageLitteraire(msg){
         .replace(/\bVictime\s*:\s*NON\b/gi, "pas de victime")
         .replace(/\bVictime\s*:\s*INCONNU\b/gi, "")
         .replace(/\bVictime\s*:\s*OUI\b/gi, "victime signalée")
+        // Protéger les slash légitimes avant la transformation
+        .replace(/\bbus\/car\b/gi, "BUS_SLASH_CAR")
+        .replace(/\bvélo\/trottinette\b/gi, "VELO_SLASH_TROTT")
         .replace(/\s*\/\s*/g, " avec ")
+        // Restaurer les slash protégés
+        .replace(/BUS_SLASH_CAR/g, "bus/car")
+        .replace(/VELO_SLASH_TROTT/g, "vélo/trottinette")
         .replace(/\s*—\s*/g, ", ")
         .replace(/,\s*,+/g, ", ")
         .replace(/,\s*(avec combles(?: aménagés)?)/gi, " $1")
@@ -14010,6 +14140,19 @@ try{ refreshGlobalCards(); }catch(e){}
     byId('mwBtnPrev').style.display = S.step>0?'':'none';
     byId('mwBtnNext').style.display = S.step<S.TOTAL-1?'':'none';
     byId('mwBtnNext').textContent = S.step<S.TOTAL-2?'Étape suivante →':'Finaliser →';
+    // Bouton Usager suivant : visible en AVP sur une fiche usager (avpStep > 0) si usager suivant existe
+    var avpNextBtn = byId('mwBtnAvpNext');
+    if (avpNextBtn) {
+      var showAvpNext = S.type === 'AVP' && S.step === 2
+        && window.state
+        && (state.avpStep||0) > 0
+        && (state.avpStep||0) < (state.avpVehicles||[]).length;
+      avpNextBtn.style.display = showAvpNext ? '' : 'none';
+      if (showAvpNext) {
+        var nextIdx = (state.avpStep||0) + 1;
+        avpNextBtn.textContent = 'Usager ' + nextIdx + ' →';
+      }
+    }
 
     /* Corps : pages wizard (étapes 0,1,3,4) ou panelAmbiance (étape 2) */
     var pages = ['mwPage0','mwPage1',null,'mwPage3'];
@@ -14095,24 +14238,39 @@ try{ refreshGlobalCards(); }catch(e){}
         byId('mobS3Bar').classList.add('off');
         byId('mobFenBar').classList.remove('on');
         byId('mobAvpBar').classList.add('on');
+        // Nettoyer les styles résiduels INC/FEN/FDF
+        var jeVoisInc=byId('incAmbJeVois');
+        if(jeVoisInc){ jeVoisInc.style.setProperty('display','none','important'); jeVoisInc.hidden=true; }
+        var detInc=byId('incStepDetail');
+        if(detInc){ detInc.style.setProperty('display','none','important'); detInc.hidden=true; }
         // Masquer tous les éléments hors AVP dans panelAmbiance
         var HIDE_AVP = [
           'btnAssistantRadio','callerOtherWrap','ambVoisSimple',
           'incAmbJeVois','incStepBackRow','incRecoRow','incVictimeGlobalWrap',
-          'incStepNature','incStepType'
+          'incStepNature','incStepType','incStepDetail'
         ];
-        HIDE_AVP.forEach(function(id){ var el=byId(id); if(el) el.style.display='none'; });
+        HIDE_AVP.forEach(function(id){ var el=byId(id); if(el){ el.style.setProperty('display','none','important'); el.hidden=true; } });
         // Masquer explicitement lieu_fen et lieu_fdf
         ['lieu_fen','lieu_fdf'].forEach(function(id){
           var el=byId(id);
           if(el){ el.style.setProperty('display','none','important'); el.hidden=true; }
         });
         document.querySelectorAll('#panelAmbiance > .card-title, #panelAmbiance > .section-title, #panelAmbiance > .grid2, #panelAmbiance > label, #panelAmbiance > input').forEach(function(el){ el.style.display='none'; });
-        // Afficher avpAmbJeVois et avpAmbianceSiteCard
-        var avpJV=byId('avpAmbJeVois'); if(avpJV){ avpJV.removeAttribute('hidden'); avpJV.style.display='block'; }
-        var avpSite=byId('avpAmbianceSiteCard'); if(avpSite){ avpSite.removeAttribute('hidden'); avpSite.style.display='block'; }
-        var curAvpStep = window.state ? (state.avpStep||0) : 0;
-        avpUpdateCrumb(curAvpStep);
+        // Afficher avpAmbJeVois
+        var avpJV=byId('avpAmbJeVois'); if(avpJV){ avpJV.removeAttribute('hidden'); avpJV.style.setProperty('display','block','important'); }
+        // Afficher avpAmbianceSiteCard seulement si on est à l'étape 0 de AVP (pas sur une fiche usager)
+        var avpSite=byId('avpAmbianceSiteCard');
+        var curAvpStepNow = window.state ? (state.avpStep||0) : 0;
+        if(avpSite){
+          if(curAvpStepNow === 0){
+            avpSite.removeAttribute('hidden');
+            avpSite.style.setProperty('display','block','important');
+          } else {
+            avpSite.style.setProperty('display','none','important');
+            avpSite.hidden = true;
+          }
+        }
+        avpUpdateCrumb(curAvpStepNow);
       } else {
         // INC — masquer explicitement les panneaux FEN/FDF résiduels
         window._wizardFenMode = false;
@@ -14170,6 +14328,18 @@ try{ refreshGlobalCards(); }catch(e){}
     if(S.type==='AVP' && next===1) next = 2;
     if(next < S.TOTAL){ S.step=next; mwRender(); }
   };
+  window.mwAvpNextUsager = function(){
+    ensureAvpState();
+    var cur = state.avpStep || 0;
+    var nbVeh = (state.avpVehicles||[]).length;
+    if (cur > 0 && cur < nbVeh) {
+      setAvpStep(cur + 1);
+      // Scroll en haut de la fiche
+      var avpJV = document.getElementById('avpAmbJeVois');
+      if (avpJV) setTimeout(function(){ avpJV.scrollIntoView({behavior:'smooth', block:'start'}); }, 80);
+    }
+  };
+
   window.mwPrev = function(){
     var prev = S.step - 1;
     // AVP : sauter l'étape 1 en retour aussi

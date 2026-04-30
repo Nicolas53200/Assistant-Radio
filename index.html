@@ -2048,6 +2048,9 @@ section.card[data-card="photosInterv"]{
               <label class="ms-opt"><input type="checkbox" value="VLI"> VLI</label>
               <label class="ms-opt"><input type="checkbox" value="VTU Balisage"> VTU Balisage</label>
               <label class="ms-opt"><input type="checkbox" value="CCF"> CCF</label>
+              <label class="ms-opt"><input type="checkbox" value="CCGC"> CCGC</label>
+              <label class="ms-opt"><input type="checkbox" value="USAR"> USAR</label>
+              <label class="ms-opt"><input type="checkbox" value="SAV"> SAV</label>
               <div class="ms-sep"></div>
               <label class="ms-opt"><input type="checkbox" value="__OTHER__"> Autre</label>
               <input id="amb_dem_sp_other" placeholder="Autre renfort SP…" style="margin-top:10px; display:none;" />
@@ -8226,9 +8229,8 @@ if (state.incTypeLieu === "FEN"){
       const per = state.gazPerimetre === "REALISE" ? "périmètre de sécurité de 50 mètres réalisé" : "périmètre de sécurité de 50 mètres en cours";
       bits.push(per);
     }
-    // PGR
-    if (state.gazPgr === "OUI") bits.push("transformation en PGR");
-    else if (state.gazPgr === "NON") bits.push("pas de transformation en PGR");
+    // PGR → va dans JE DEMANDE, pas JE VOIS
+    // (géré dans buildMessage via demandePgr)
   }
 
   // Détails Transformateur
@@ -9384,7 +9386,9 @@ function avpPosLabel(p){
     "CONTREBAS":    "en contrebas",
     "CHAUSSEE":     "sur chaussée",
     "VOIEOPP":      "sur voie opposée",
-    "APPUI_LATERAL":"en appui latéral instable"
+    "APPUI_LATERAL":"en appui latéral instable",
+    "RIVIERE":      "dans une rivière",
+    "PLAN_EAU":     "dans un plan d'eau"
   };
   return map[p] || "";
 }
@@ -9673,7 +9677,8 @@ function renderAvpVehiclesEditor(){
   const positionItems = [
     ["ROUES","Sur roues"], ["COTE","Sur le côté"], ["TOIT","Sur le toit"],
     ["FOSSE","Dans fossé"], ["CONTREBAS","Contrebas"], ["CHAUSSEE","Sur chaussée"], ["VOIEOPP","Voie opposée"],
-    ["APPUI_LATERAL","En appui latéral instable"]
+    ["APPUI_LATERAL","En appui latéral instable"],
+    ["RIVIERE","Dans une rivière"], ["PLAN_EAU","Dans un plan d'eau"]
   ];
   const plItems = [
     ["BENNE","Benne"], ["SEMI","Semi-remorque"], ["FRIGO","Frigorifique"],
@@ -11048,7 +11053,16 @@ function buildMessage(){
 
   if (state.tab === "ambiance") {
     const suis = ($("#amb_suis").value || "").trim() || getAdresseIntervention();
-    const demande = buildDemandeFromGroups("amb");
+    let demande = buildDemandeFromGroups("amb");
+    // Fuite de gaz : ajouter PGR dans JE DEMANDE si sélectionné
+    const isGaz = (state.incTypeLieu || "").toLowerCase().includes("fuite de gaz") || (state.incNature || "") === "Fuite de gaz";
+    if (isGaz && state.gazPgr === "OUI") {
+      const pgrDemande = "transformation de PGC (Procédure Gaz Classique) en PGR (Procédure Gaz Renforcé)";
+      demande = demande ? `${demande}, ${pgrDemande}` : pgrDemande;
+    } else if (isGaz && state.gazPgr === "NON") {
+      const pgrDemande = "pas de transformation en PGR";
+      demande = demande ? `${demande}, ${pgrDemande}` : pgrDemande;
+    }
     const adr = (state.departAdresse || "").trim();
 
     let vois = "";
@@ -11080,9 +11094,17 @@ function buildMessage(){
     const adr = (state.departAdresse || "").trim();
     const vois = ($("#rens_vois").value || "").trim();
     let fais = ($("#rens_fais").value || "").trim();
-    // Toujours recalculer pour INC/FEN/FDF pour intégrer causeEteint et autres champs dynamiques
     if (["INC","FEN","FDF"].includes(state.type)) fais = buildIncRensJeFais();
-    const demande = buildDemande("rens");
+    let demande = buildDemande("rens");
+    // Fuite de gaz : PGR dans JE DEMANDE
+    const isGazRens = (state.incTypeLieu || "").toLowerCase().includes("fuite de gaz") || (state.incNature || "") === "Fuite de gaz";
+    if (isGazRens && state.gazPgr === "OUI") {
+      const pgrD = "transformation de PGC (Procédure Gaz Classique) en PGR (Procédure Gaz Renforcé)";
+      demande = demande ? `${demande}, ${pgrD}` : pgrD;
+    } else if (isGazRens && state.gazPgr === "NON") {
+      const pgrD = "pas de transformation en PGR";
+      demande = demande ? `${demande}, ${pgrD}` : pgrD;
+    }
 
     const victSum = (typeof buildRensVictimesSummary === "function") ? buildRensVictimesSummary() : "";
     const avpFais = (state.type === "AVP" && typeof buildAvpRensJeFais === "function") ? buildAvpRensJeFais() : "";
@@ -12847,7 +12869,8 @@ try{ refreshGlobalCards(); }catch(e){}
     SEUL:'accident seul', FRONTAL:'choc frontal', ARRIERE:'choc arrière', LATERAL:'choc latéral', OBSTACLE:'contre obstacle', TONNEAUX:'avec tonneaux'
   };
   const POS_LABEL = {
-    ROUES:'sur ses roues', COTE:'sur le côté', TOIT:'sur le toit', FOSSE:'dans un fossé', CONTREBAS:'en contrebas', CHAUSSEE:'sur chaussée', VOIEOPP:'sur voie opposée', APPUI_LATERAL:'en appui latéral instable'
+    ROUES:'sur ses roues', COTE:'sur le côté', TOIT:'sur le toit', FOSSE:'dans un fossé', CONTREBAS:'en contrebas', CHAUSSEE:'sur chaussée', VOIEOPP:'sur voie opposée', APPUI_LATERAL:'en appui latéral instable',
+    RIVIERE:'dans une rivière', PLAN_EAU:"dans un plan d'eau"
   };
 
   // Helper acc+pos fluide (partagé mobile)
@@ -14375,6 +14398,9 @@ try{ refreshGlobalCards(); }catch(e){}
     { id:'VLISSO', label:'VLISSO', multi:false },
     { id:'VTU', label:'VTU Balisage', multi:false },
     { id:'CCF', label:'CCF', multi:true },
+    { id:'CCGC', label:'CCGC', multi:false },
+    { id:'USAR', label:'USAR', multi:false },
+    { id:'SAV', label:'SAV', multi:false },
   ];
   // État : { id -> quantité (0 = non sélectionné) }
   var spQty = {};
@@ -14489,7 +14515,19 @@ try{ refreshGlobalCards(); }catch(e){}
     var extParts = [];
     if(window.S && window.S.demExt) extParts = window.S.demExt.slice();
     var au=byId('mwExtAutreVal')&&byId('mwExtAutreVal').value; if(au) extParts.push(au);
-    var allDem = spParts.concat(extParts);
+
+    // Fuite de gaz : ajouter PGR dans la demande
+    var pgrParts = [];
+    if(window.state){
+      var isGazMw = (state.incTypeLieu||'').toLowerCase().includes('fuite de gaz') || (state.incNature||'') === 'Fuite de gaz';
+      if(isGazMw && state.gazPgr === 'OUI'){
+        pgrParts.push('transformation de PGC (Procédure Gaz Classique) en PGR (Procédure Gaz Renforcé)');
+      } else if(isGazMw && state.gazPgr === 'NON'){
+        pgrParts.push('pas de transformation en PGR');
+      }
+    }
+
+    var allDem = spParts.concat(extParts).concat(pgrParts);
     var demStr = allDem.length ? 'JE DEMANDE : '+allDem.join(' / ') : '';
 
     if(raw){
@@ -15530,7 +15568,7 @@ try{ refreshGlobalCards(); }catch(e){}
   var RW_SP_ITEMS = [
     {id:'ep46',label:'EP (4/6)'},{id:'mea',label:'MEA'},{id:'vsr',label:'VSR'},
     {id:'vsav',label:'VSAV'},{id:'vli',label:'VLI'},{id:'vlisso',label:'VLISSO'},{id:'vtu',label:'VTU Balisage'},
-    {id:'ccf',label:'CCF'}
+    {id:'ccf',label:'CCF'},{id:'ccgc',label:'CCGC'},{id:'usar',label:'USAR'},{id:'sav',label:'SAV'}
   ];
   RW_SP_ITEMS.forEach(function(it){ rwSpQty[it.id]=0; });
 

@@ -1364,9 +1364,28 @@ section.card[data-card="photosInterv"]{
       </div>
       <div id="mfGpsBox" style="display:none;" class="gps-box"></div>
     </div>
-    <div class="mob-card">
-      <div class="mob-card-title">En route</div>
-      <button class="btn" style="min-height:54px;font-size:17px;" onclick="mobTransit()">🚒 Message Transit</button>
+    <div class="mob-card" style="border:2px solid rgba(251,146,60,.6);background:rgba(251,146,60,.08);">
+      <div class="mob-card-title" style="color:#fb923c;font-size:16px;letter-spacing:.05em;">🚒 EN ROUTE</div>
+      <button onclick="mobTransit()" style="
+        width:100%;
+        min-height:72px;
+        border-radius:18px;
+        border:none;
+        background:linear-gradient(135deg,#f97316,#ea580c);
+        color:#fff;
+        font-size:22px;
+        font-weight:900;
+        letter-spacing:.03em;
+        cursor:pointer;
+        box-shadow:0 4px 20px rgba(249,115,22,.4);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:12px;
+      ">
+        🚒 Message en transit
+      </button>
+      <div style="text-align:center;font-size:12px;opacity:.6;margin-top:8px;">Message à envoyer au CODIS si vous apercevez des indications concernant le feu en route</div>
     </div>
     <button class="btn-arrive" id="mfArrive" onclick="mobArrive()">🏠 Arrivée sur les lieux</button>
   </div>
@@ -1431,31 +1450,33 @@ section.card[data-card="photosInterv"]{
       <span class="radio-trame-badge">📡 Je demande</span>
       <div class="radio-trame-line"></div>
     </div>
-    <div class="wiz-card">
-      <div class="wiz-card-title">Renforts SP</div>
-      <div id="mwSpChips" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
-      <!-- Zone compteurs (apparaît sous les chips sélectionnées) -->
-      <div id="mwSpCounters" style="display:flex;flex-direction:column;gap:10px;margin-top:12px;"></div>
-      <div id="mwSpAutreWrap" hidden style="margin-top:8px">
-        <input id="mwSpAutreVal" placeholder="Autre renfort SP…" oninput="mwOutput()"/>
+    <!-- Renforts SP + Autres demandes sur la même ligne -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div class="wiz-card" style="margin:0;">
+        <div class="wiz-card-title" style="font-size:14px;">Renforts SP</div>
+        <div id="mwSpChips" style="display:flex;gap:6px;flex-wrap:wrap;"></div>
+        <div id="mwSpCounters" style="display:flex;flex-direction:column;gap:8px;margin-top:10px;"></div>
+        <div id="mwSpAutreWrap" hidden style="margin-top:8px">
+          <input id="mwSpAutreVal" placeholder="Autre renfort SP…" oninput="mwOutput()"/>
+        </div>
       </div>
-    </div>
-    <div class="wiz-card">
-      <div class="wiz-card-title">Autres demandes</div>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="chip" onclick="mwDemExt('SMUR',this)">SMUR</button>
-        <button class="chip" onclick="mwDemExt('Autorité',this)">Autorité</button>
-        <button class="chip" onclick="mwDemExt('Force de l\'ordre',this)">Force de l'ordre</button>
-        <button class="chip" onclick="mwDemExt('Service de la Mairie',this)">Mairie</button>
-        <button class="chip" onclick="mwDemExt('Conseil Départemental',this)">Conseil Dép.</button>
-        <button class="chip" onclick="mwDemExt('ENEDIS',this)">ENEDIS</button>
-        <button class="chip" onclick="mwDemExt('RTE',this)">RTE</button>
-        <button class="chip" onclick="mwDemExt('GRDF',this)">GRDF</button>
-        <button class="chip" onclick="mwDemExt('CIL SNCF',this)">🚆 CIL SNCF</button>
-        <button class="chip" id="mwExtAutreBtn" onclick="this.classList.toggle('active');document.getElementById('mwExtAutreWrap').hidden=!this.classList.contains('active')">Autre…</button>
-      </div>
-      <div id="mwExtAutreWrap" hidden style="margin-top:8px">
-        <input id="mwExtAutreVal" placeholder="Autre renfort extérieur…" oninput="mwOutput()"/>
+      <div class="wiz-card" style="margin:0;">
+        <div class="wiz-card-title" style="font-size:14px;">Autres demandes</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="chip" onclick="mwDemExt('SMUR',this)">SMUR</button>
+          <button class="chip" onclick="mwDemExt('Autorité',this)">Autorité</button>
+          <button class="chip" onclick="mwDemExt('Force de l\'ordre',this)">FDO</button>
+          <button class="chip" onclick="mwDemExt('Service de la Mairie',this)">Mairie</button>
+          <button class="chip" onclick="mwDemExt('Conseil Départemental',this)">Conseil Dép.</button>
+          <button class="chip" onclick="mwDemExt('ENEDIS',this)">ENEDIS</button>
+          <button class="chip" onclick="mwDemExt('RTE',this)">RTE</button>
+          <button class="chip" onclick="mwDemExt('GRDF',this)">GRDF</button>
+          <button class="chip" onclick="mwDemExt('CIL SNCF',this)">🚆 CIL SNCF</button>
+          <button class="chip" id="mwExtAutreBtn" onclick="this.classList.toggle('active');document.getElementById('mwExtAutreWrap').hidden=!this.classList.contains('active')">Autre…</button>
+        </div>
+        <div id="mwExtAutreWrap" hidden style="margin-top:8px">
+          <input id="mwExtAutreVal" placeholder="Autre demande…" oninput="mwOutput()"/>
+        </div>
       </div>
     </div>
     <div class="radio-trame trame-suis">
@@ -1467,7 +1488,8 @@ section.card[data-card="photosInterv"]{
       <input id="mw_suis" placeholder="adresse / secteur" oninput="mwSuis(this.value)"/>
       <button class="btn" style="margin-top:8px;min-height:46px;font-size:15px;" onclick="mwSuisFromFeuille()">↳ Reprendre l'adresse alerte</button>
     </div>
-    <div class="wiz-card"><div class="wiz-card-title">Message radio</div><div class="wiz-output" id="mwOut0">—</div><button class="btn" style="margin-top:10px;min-height:46px;" onclick="mwCopy('mwOut0')">📋 Copier</button></div>
+    <!-- Message radio masqué à l'étape 0 — visible uniquement à l'étape finale -->
+    <div hidden><div id="mwOut0"></div></div>
   </div>
   <!-- Étape 2 : Victime (INC/FEN/FDF) ou Résumé véhicules (AVP) -->
   <div id="mwPage1" style="display:none">
@@ -2910,21 +2932,21 @@ section.card[data-card="photosInterv"]{
         <div id="lieu_gaz" class="lieu-panel" hidden>
           <div class="section-title">Fuite de gaz</div>
 
-          <!-- Périmètre de sécurité 50m -->
-          <div class="subcard tight" style="margin-top:10px;">
-            <div class="subcard-title">Périmètre de sécurité de 50 m</div>
-            <div class="chips center" id="gazPerimetreChips">
-              <button class="chip" type="button" data-chip="EN_COURS">En cours</button>
-              <button class="chip" type="button" data-chip="REALISE">Réalisé</button>
+          <!-- Périmètre + PGR sur une ligne -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+            <div class="subcard tight">
+              <div class="subcard-title" style="font-size:14px;margin-bottom:6px;">Périmètre 50 m</div>
+              <div class="chips center" id="gazPerimetreChips" style="flex-direction:column;gap:5px;">
+                <button class="chip" type="button" data-chip="EN_COURS" style="width:100%;text-align:center;">En cours</button>
+                <button class="chip" type="button" data-chip="REALISE" style="width:100%;text-align:center;">Réalisé</button>
+              </div>
             </div>
-          </div>
-
-          <!-- Transformation en PGR -->
-          <div class="subcard tight" style="margin-top:10px;">
-            <div class="subcard-title">Transformation en PGR</div>
-            <div class="chips center" id="gazPgrChips">
-              <button class="chip" type="button" data-chip="OUI">Oui</button>
-              <button class="chip" type="button" data-chip="NON">Non</button>
+            <div class="subcard tight">
+              <div class="subcard-title" style="font-size:14px;margin-bottom:6px;">PGC → PGR</div>
+              <div class="chips center" id="gazPgrChips" style="flex-direction:column;gap:5px;">
+                <button class="chip" type="button" data-chip="OUI" style="width:100%;text-align:center;">Oui</button>
+                <button class="chip" type="button" data-chip="NON" style="width:100%;text-align:center;">Non</button>
+              </div>
             </div>
           </div>
 
@@ -2946,16 +2968,42 @@ section.card[data-card="photosInterv"]{
           </div>
 
           <!-- Type de gaz (si "Fuite de gaz autre") -->
-          <div id="gazAutreWrap" hidden style="margin-top:10px;">
+          <div id="gazAutreWrap" hidden style="margin-top:10px;display:flex;flex-direction:column;gap:8px;">
+
+            <!-- Type de gaz — pleine largeur -->
             <div class="subcard tight">
-              <div class="subcard-title">Type de gaz</div>
-              <div class="chips center" id="gazTypeChips">
+              <div class="subcard-title" style="margin-bottom:6px;">🧪 Type de gaz</div>
+              <div class="chips center" id="gazTypeChips" style="gap:6px;">
                 <button class="chip" type="button" data-chip="Acétylène">Acétylène</button>
                 <button class="chip" type="button" data-chip="Propane">Propane</button>
                 <button class="chip" type="button" data-chip="Butane">Butane</button>
                 <button class="chip" type="button" data-chip="Azote">Azote</button>
                 <button class="chip" type="button" data-chip="Oxygène">Oxygène</button>
                 <button class="chip" type="button" data-chip="Hydrogène">Hydrogène</button>
+                <button class="chip" type="button" data-chip="H2S">H2S</button>
+                <button class="chip" type="button" data-chip="CO">CO</button>
+              </div>
+            </div>
+
+            <!-- Localisation + Origine côte à côte -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+              <div class="subcard tight">
+                <div class="subcard-title" style="margin-bottom:6px;">📍 Localisation</div>
+                <div style="display:flex;flex-direction:column;gap:6px;" id="gazLocalisationChips">
+                  <button class="chip" type="button" data-gazloc="HABITATION" style="width:100%;text-align:center;">Habitation</button>
+                  <button class="chip" type="button" data-gazloc="LOCAL_FERME" style="width:100%;text-align:center;">Local fermé</button>
+                  <button class="chip" type="button" data-gazloc="LOCAL_OUVERT" style="width:100%;text-align:center;">Local ouvert</button>
+                  <button class="chip" type="button" data-gazloc="EXTERIEUR" style="width:100%;text-align:center;">À l'air libre</button>
+                </div>
+              </div>
+              <div class="subcard tight">
+                <div class="subcard-title" style="margin-bottom:6px;">🔧 Origine</div>
+                <div style="display:flex;flex-direction:column;gap:6px;" id="gazOrigineChips">
+                  <button class="chip" type="button" data-gazori="CANALISATION" style="width:100%;text-align:center;">Canalisation</button>
+                  <button class="chip" type="button" data-gazori="CUVE" style="width:100%;text-align:center;">Cuve</button>
+                  <button class="chip" type="button" data-gazori="CHAUFFAGE" style="width:100%;text-align:center;">Chauffage défectueux</button>
+                  <button class="chip" type="button" data-gazori="BOUTEILLE" style="width:100%;text-align:center;">Bouteille défectueuse</button>
+                </div>
               </div>
             </div>
           </div>
@@ -3787,7 +3835,9 @@ const state = {
   gazPgr: "",       // OUI / NON
   gazEvacN: "",     // nombre de personnes évacuées (gaz)
   gazConfN: "",     // nombre de personnes confinées (gaz)
-  gazType: "",      // Acétylène / Propane / etc.      // PL type
+  gazType: "",      // Acétylène / Propane / etc.
+  gazLocalisation: "", // LOCAL_FERME / LOCAL_OUVERT / EXTERIEUR
+  gazOrigine: "",   // CANALISATION / CUVE      // PL type
   plFuel: "",      // PL carburation
   plPerimetre: "", // PL périmètre de sécurité 50 m
   plTmdCargo: "",  // PL TMD : produit / charge
@@ -5010,6 +5060,11 @@ if (state.incTypeLieu === "Pavillon") { const p = $("#lieu_pavillon"); if (p) p.
     });
     const gazE = document.getElementById("gazEvacN"); if(gazE && document.activeElement!==gazE) gazE.value = state.gazEvacN||"";
     const gazC = document.getElementById("gazConfN"); if(gazC && document.activeElement!==gazC) gazC.value = state.gazConfN||"";
+    // Sync localisation et origine
+    const gazLocEl2 = document.getElementById("gazLocalisationChips");
+    if(gazLocEl2) gazLocEl2.querySelectorAll("[data-gazloc]").forEach(b => b.classList.toggle("active", b.dataset.gazloc === state.gazLocalisation));
+    const gazOriEl2 = document.getElementById("gazOrigineChips");
+    if(gazOriEl2) gazOriEl2.querySelectorAll("[data-gazori]").forEach(b => b.classList.toggle("active", b.dataset.gazori === state.gazOrigine));
   }
 
   // VL / PL
@@ -5610,107 +5665,156 @@ function agBuildMessage(mode, opts = {}){
   const leafId = state.incAgricoleLeafId || "";
   const meta = leafId ? (AGRICOLE_LEAVES_META[leafId] || {}) : {};
   const objet = meta.object || state.incAgricoleLeafLabel || "site agricole";
+  const g = (k) => agGet(k);
 
-  const surfaceRaw = agGet("batiment_ou_zone.surface");
-  const structureRaw = agGet("batiment_ou_zone.structure");
-  const etatFeuRaw = agGet("sinistre.etat_feu") || "";
+  // ── Helpers ──
+  const vowels = 'aeiouéèêëàâùûîïo';
+  const elideOf = (n) => vowels.includes((n||'')[0].toLowerCase()) ? "d'" + n : "de " + n;
+  const skip = (v) => !v || ["INCONNU","INCONNUE","AUCUN","NON"].includes(String(v).toUpperCase());
+  const pretty = agPretty;
 
-  // Surface (masquer si inconnue)
-  const surface = (!surfaceRaw || surfaceRaw === "INCONNUE") ? "" : agSurfaceOral(surfaceRaw);
-  // Structure (masquer si inconnue)
-  const structure = (!structureRaw || structureRaw === "INCONNU" || structureRaw === "INCONNUE") ? "" : agPretty(structureRaw);
-  // État feu
-  const etatFeu = agPretty(etatFeuRaw) || "";
-  // Fumées
-  const fumeesRaw = agGet("sinistre.fumees") || agGet("sinistre.degagement_fumees") || "";
-  const fumeesTxt = (fumeesRaw && fumeesRaw !== "INCONNU") ? `dégagement de fumées ${agPretty(fumeesRaw)}` : "";
+  // ── Champs communs ──
+  const surfaceRaw = g("batiment_ou_zone.surface");
+  const structureRaw = g("batiment_ou_zone.structure");
+  const etatFeuRaw = g("sinistre.etat_feu") || "";
+  const fumeesRaw = g("sinistre.fumee") || g("sinistre.fumees") || g("sinistre.degagement_fumees") || "";
+  const accesRaw = g("localisation.acces") || "";
+  const victimesRaw = g("enjeux.victimes") || "";
+  const eauRaw = g("eau.ressource_eau") || "";
+  const elecRaw = g("energies.electricite") || "";
+  const gazRaw = g("energies.gaz") || "";
+  const pvRaw = g("energies.photovoltaique") || "";
+  const env = g("enjeux.propagation_enjeux");
+  const envArr = (Array.isArray(env) ? env : (env ? [env] : [])).filter(v => v && !["INCONNU","AUCUN"].includes(v));
 
-  // Animaux
+  const surface = (surfaceRaw && surfaceRaw !== "INCONNUE") ? agSurfaceOral(surfaceRaw) : "";
+  const structure = (structureRaw && !["INCONNU","INCONNUE"].includes(structureRaw)) ? pretty(structureRaw) : "";
+  const etatFeu = etatFeuRaw && etatFeuRaw !== "INCONNU" ? pretty(etatFeuRaw) : "";
+  const fumees = (fumeesRaw && fumeesRaw !== "INCONNU") ? `fumées ${pretty(fumeesRaw).toLowerCase()}` : "";
+
+  // ── Accès ──
+  const accesTxt = (accesRaw && accesRaw !== "INCONNU") ? `accès ${pretty(accesRaw).toLowerCase()}` : "";
+
+  // ── Animaux (communs à plusieurs types) ──
   let animauxTxt = "";
-  const pres = agGet("animaux.presence_animaux");
-  if (pres && pres !== "AUCUN" && pres !== "INCONNU"){
-    const evac = agGet("animaux.evacuation_possible");
-    animauxTxt = `présence ${agPretty(pres)}${evac && evac !== "INCONNU" ? ", évacuation " + agPretty(evac) : ""}`;
+  const presAnim = g("animaux.presence_animaux") || "";
+  if (presAnim && presAnim !== "AUCUN" && presAnim !== "INCONNU"){
+    const evacAnim = g("animaux.evacuation_possible") || "";
+    animauxTxt = `présence ${pretty(presAnim).toLowerCase()}`;
+    if (evacAnim && evacAnim !== "INCONNU") animauxTxt += `, évacuation ${pretty(evacAnim).toLowerCase()}`;
   }
 
-  // Énergies
+  // ── Spécifiques par leaf ──
+  const specParts = [];
+
+  // Avicole
+  if(g("specif_avicole.litiere_poussieres") === "OUI") specParts.push("litière / poussières combustibles");
+  if(g("specif_avicole.ammoniac") === "OUI") specParts.push("odeur ammoniac signalée");
+  if(g("specif_avicole.ventilation_mecanique") === "OUI") specParts.push("ventilation mécanique en service");
+  if(g("specif_avicole.silos_alimentation") === "OUI") specParts.push("silos d'alimentation présents");
+  if(g("specif_avicole.cuves_gaz_carburant") === "OUI") specParts.push("cuves / gaz / carburant à proximité");
+
+  // Porcherie
+  if(g("specif_porc.fosse_lisier") === "OUI") specParts.push("fosse à lisier présente");
+  if(g("specif_porc.cuves_gaz") === "OUI") specParts.push("cuves gaz à proximité");
+
+  // Hangar fourrage
+  const fourrage = g("contenu.fourrage_present");
+  if(fourrage === "OUI"){
+    const qte = g("contenu.quantite");
+    specParts.push(`fourrage${qte && qte !== "INCONNUE" ? " (" + pretty(qte).toLowerCase() + ")" : ""}`);
+  }
+  if(g("contenu.engins_present") === "OUI") specParts.push("engins présents dans le bâtiment");
+  if(g("contenu.amiante_suspectee") === "OUI") specParts.push("amiante suspectée");
+  if(g("specif.stockage_carburant") === "OUI") specParts.push("stockage carburant");
+
+  // Silo
+  const typeSilo = g("type_silo");
+  if(typeSilo && typeSilo !== "INCONNU") specParts.push(`silo ${pretty(typeSilo).toLowerCase()}`);
+  if(g("operations.manutention_en_cours") === "OUI") specParts.push("manutention en cours");
+
+  // Citerne GPL
+  const distFeu = g("distance_feu");
+  if(distFeu && distFeu !== "INCONNUE") specParts.push(`citerne à ${pretty(distFeu).toLowerCase()}`);
+
+  // Méthanisation
+  const zoneMeth = g("zone");
+  if(zoneMeth && zoneMeth !== "INCONNU") specParts.push(`zone ${pretty(zoneMeth).toLowerCase()}`);
+
+  // Stockage mixte / produits dangereux
+  if(g("specif_stockage.produits_dangereux") === "OUI") specParts.push("produits dangereux");
+  if(g("specif_stockage.liquides_inflammables") === "OUI") specParts.push("liquides inflammables");
+
+  // ── Énergies ──
   const energiesParts = [];
-  const elecRaw = agGet("energies.electricite");
-  const gazRaw = agGet("energies.gaz");
-  const pv = agGet("energies.photovoltaique");
-  if (elecRaw && elecRaw !== "INCONNUE"){
-    energiesParts.push(elecRaw === "NON_COUPEE" ? "électricité non coupée" : elecRaw === "COUPEE" ? "électricité coupée" : `électricité ${agPretty(elecRaw)}`);
+  if(elecRaw && elecRaw !== "INCONNUE"){
+    energiesParts.push(elecRaw === "NON_COUPEE" ? "électricité non coupée" : elecRaw === "COUPEE" ? "électricité coupée" : `électricité ${pretty(elecRaw).toLowerCase()}`);
   }
-  if (gazRaw && !["INCONNU","AUCUN","INCONNUE"].includes(gazRaw)) energiesParts.push(`gaz ${agPretty(gazRaw)}`);
-  if (pv === "OUI") energiesParts.push("panneaux photovoltaïques présents");
+  if(gazRaw && !["INCONNU","AUCUN","INCONNUE"].includes(gazRaw)) energiesParts.push(`gaz ${pretty(gazRaw).toLowerCase()}`);
+  if(pvRaw === "OUI") energiesParts.push("panneaux photovoltaïques");
 
-  // Risques spécifiques
+  // ── Risques spécifiques ──
   const specRisks = agLeafSpecificRisks(leafId).map(agCleanRiskLabel).filter(Boolean);
 
-  // Enjeux
-  const env = agGet("enjeux.propagation_enjeux");
-  const envArr = (Array.isArray(env) ? env : (env ? [env] : [])).filter(v => v && v !== "INCONNU" && v !== "AUCUN");
-  const enjeuxPretty = envArr.map(agPretty).filter(Boolean);
+  // ── Enjeux ──
+  const enjeuxMap = {
+    AUTRES_BATIMENTS: "autres bâtiments",
+    HABITATIONS: "habitations",
+    STOCKAGES: "stockages",
+    ENGINS: "engins",
+  };
+  const enjeuxPretty = envArr.map(v => enjeuxMap[v] || pretty(v)).filter(Boolean);
 
-  // Eau
-  const eauRaw = agGet("eau.ressource_eau");
-  const eauTxt = (eauRaw && eauRaw !== "INCONNUE" && eauRaw !== "INCONNU") ? `point d'eau : ${agPretty(eauRaw)}` : "";
+  // ── Point d'eau ──
+  const eauMap = {
+    PI_PROCHE: "PI proche",
+    RESERVE: "réserve d'eau",
+    POINT_EAU_NATUREL: "point d'eau naturel",
+    AUCUNE_IMMEDIATE: "aucune ressource immédiate"
+  };
+  const eauTxt = (eauRaw && !["INCONNUE","INCONNU"].includes(eauRaw)) ? (eauMap[eauRaw] || pretty(eauRaw)) : "";
 
-  // Détails spécifiques
-  let detailsLeafTxt = "";
-  const g = (k) => agGet(k);
-  if (leafId === "HANGAR_STOCKAGE_FOURRAGE"){
-    const q = g("contenu.quantite");
-    if (g("contenu.fourrage_present") === "OUI") detailsLeafTxt = `fourrage${q && q !== "INCONNU" ? " (" + agPretty(q) + ")" : ""}`;
-  }
-  if (leafId === "SILO_A_GRAINS"){
-    const t = g("type_silo");
-    if (t && t !== "INCONNU") detailsLeafTxt = `silo ${agPretty(t)}`;
-    if (g("operations.manutention_en_cours") === "OUI") detailsLeafTxt += ", manutention en cours";
-  }
-  if (leafId === "CITERNE_GPL_PROPANE"){
-    const d = g("distance_feu");
-    if (d && d !== "INCONNUE") detailsLeafTxt = `citerne à ${agPretty(d)}`;
-  }
-  if (leafId === "METHANISATION"){
-    const z = g("zone");
-    if (z && z !== "INCONNU") detailsLeafTxt = `zone ${agPretty(z)}`;
-  }
+  // ── Victimes ──
+  const victimesTxt = victimesRaw === "OUI" ? "victime(s) signalée(s)" : "";
 
-  // ── Construction de la phrase principale ──
+  // ══ Construction de la phrase ══
   const parts = [];
 
-  // 1. "Feu de [objet]" avec élision
-  const vowels = 'aeiouéèêëàâùûîïo';
-  const elide = vowels.includes((objet||"")[0].toLowerCase());
-  let intro = `Feu ${elide ? "d'" : "de "}${objet}`;
-  if (surface) intro += `, ${surface}`;
-  if (structure) intro += `, structure ${structure}`;
+  // 1. Identification + surface + structure
+  let intro = `Feu ${elideOf(objet)}`;
+  if(surface) intro += `, ${surface}`;
+  if(structure) intro += `, structure ${structure}`;
   parts.push(intro);
 
   // 2. État feu + fumées
   const etatBits = [];
-  if (etatFeu) etatBits.push(`feu ${etatFeu}`);
-  if (fumeesTxt) etatBits.push(fumeesTxt);
-  if (etatBits.length) parts.push(etatBits.join(", "));
+  if(etatFeu) etatBits.push(`feu ${etatFeu}`);
+  if(fumees) etatBits.push(fumees);
+  if(etatBits.length) parts.push(etatBits.join(", "));
 
-  // 3. Animaux
-  if (animauxTxt) parts.push(animauxTxt);
+  // 3. Accès
+  if(accesTxt) parts.push(accesTxt);
 
-  // 4. Détails spécifiques
-  if (detailsLeafTxt) parts.push(detailsLeafTxt);
+  // 4. Victimes
+  if(victimesTxt) parts.push(victimesTxt);
 
-  // 5. Énergies
-  if (energiesParts.length) parts.push(energiesParts.join(", "));
+  // 5. Animaux
+  if(animauxTxt) parts.push(animauxTxt);
 
-  // 6. Risques
-  if (!suppressRisks && specRisks.length) parts.push(`risque${specRisks.length > 1 ? "s" : ""} : ${specRisks.join(", ")}`);
+  // 6. Spécifiques leaf
+  if(specParts.length) parts.push(specParts.join(", "));
 
-  // 7. Enjeux
-  if (enjeuxPretty.length) parts.push(`à proximité : ${enjeuxPretty.join(", ")}`);
+  // 7. Énergies
+  if(energiesParts.length) parts.push(energiesParts.join(", "));
 
-  // 8. Eau
-  if (eauTxt) parts.push(eauTxt);
+  // 8. Risques
+  if(!suppressRisks && specRisks.length) parts.push(`risque${specRisks.length > 1 ? "s" : ""} : ${specRisks.join(", ")}`);
+
+  // 9. Enjeux à proximité
+  if(enjeuxPretty.length) parts.push(`à proximité : ${enjeuxPretty.join(", ")}`);
+
+  // 10. Point d'eau
+  if(eauTxt) parts.push(eauTxt);
 
   return parts
     .filter(Boolean)
@@ -7087,6 +7191,30 @@ wireChipGroup("#poubelleChips", (btn, v) => {
   wireGazChip("gazPgrChips",       () => state.gazPgr,       v => { state.gazPgr = v; });
   wireGazChip("gazTypeChips",      () => state.gazType,      v => { state.gazType = v; });
 
+  // Localisation gaz (single select)
+  const gazLocEl = document.getElementById("gazLocalisationChips");
+  if(gazLocEl){
+    gazLocEl.addEventListener("click", e => {
+      const btn = e.target.closest("[data-gazloc]");
+      if(!btn) return;
+      state.gazLocalisation = state.gazLocalisation === btn.dataset.gazloc ? "" : btn.dataset.gazloc;
+      gazLocEl.querySelectorAll("[data-gazloc]").forEach(b => b.classList.toggle("active", b.dataset.gazloc === state.gazLocalisation));
+      updatePreview && updatePreview();
+    });
+  }
+
+  // Origine gaz (single select)
+  const gazOriEl = document.getElementById("gazOrigineChips");
+  if(gazOriEl){
+    gazOriEl.addEventListener("click", e => {
+      const btn = e.target.closest("[data-gazori]");
+      if(!btn) return;
+      state.gazOrigine = state.gazOrigine === btn.dataset.gazori ? "" : btn.dataset.gazori;
+      gazOriEl.querySelectorAll("[data-gazori]").forEach(b => b.classList.toggle("active", b.dataset.gazori === state.gazOrigine));
+      updatePreview && updatePreview();
+    });
+  }
+
   // Wiring chips cheminée (multi-sélection)
   function wireChemineMulti(id, stateKey) {
     const c = document.getElementById(id);
@@ -7965,136 +8093,142 @@ function buildIncAmbianceJeVois(){
   
 if (state.incTypeLieu === "FEN"){
     const f = state.fen || {};
-    const d = [];
 
-    // Base : on reconstruit proprement sans répéter "Feu" et "FEN"
-    // bits contient déjà ["Feu", "FEN"] — on les vide et on repart d'une phrase naturelle
     bits.length = 0;
     const type = (f.type || "ESPACE_NATUREL");
     if (type === "ENGIN_AGRICOLE") bits.push("Feu d'engin agricole");
     else if (type === "ESPACE_NATUREL+ENGIN_AGRICOLE") bits.push("Feu d'espace naturel et d'engin agricole");
     else bits.push("Feu d'espace naturel");
 
+    const d = [];
+
     // Virulence
     if (f.virulence && f.virulence !== "INCONNU"){
       d.push(f.virulence === "VIRULENT" ? "virulent" : "peu virulent");
     }
 
-    // Engin (si concerné)
+    // Engin agricole
     if (type.includes('ENGIN_AGRICOLE') && f.engin){
-      if (f.engin === 'AUTRE'){
-        if (f.engin_other) d.push(`engin : ${f.engin_other}`);
-      } else {
-        const map = {
-          TRACTEUR: 'tracteur',
-          MOISSONNEUSE_BATTEUSE: 'moissonneuse-batteuse',
-          MOTOCULTEUR: 'motoculteur',
-          PRESSE_BALLES: 'presse à balles',
-          SEMOIR_EPANDEUR: 'semoir / épandeur'
-        };
-        d.push(`engin : ${map[f.engin] || f.engin.toLowerCase()}`);
+      if (f.engin === 'AUTRE'){ if (f.engin_other) d.push(`engin : ${f.engin_other}`); }
+      else {
+        const m = { TRACTEUR:'tracteur', MOISSONNEUSE_BATTEUSE:'moissonneuse-batteuse', MOTOCULTEUR:'motoculteur', PRESSE_BALLES:'presse à balles', SEMOIR_EPANDEUR:'semoir / épandeur' };
+        d.push(`engin : ${m[f.engin] || f.engin.toLowerCase()}`);
       }
     }
 
     // Végétation
     if (f.veg_type && f.veg_type !== 'INCONNU'){
-      const map = {
-        BROUSSAILLES:'broussailles',
-        CULTURES_SUR_PIED:'cultures sur pied',
-        CHAUMES:'chaumes',
-        HERBACEE:'herbacée',
-        HAIE:'haie',
-        FOURRAGE:'Fourrage'
-      };
-      if (f.veg_type === 'AUTRE'){
-        if (f.veg_type_other) d.push(f.veg_type_other);
-      } else if (f.veg_type === 'FOURRAGE' && f.veg_culture) {
-        d.push(f.veg_culture.toLowerCase());
-      } else if ((f.veg_type === 'CULTURES_SUR_PIED' || f.veg_type === 'CHAUMES' || f.veg_type === 'HERBACEE') && f.veg_culture) {
-        // Intégrer le type de culture sélectionné via le popup
-        var baseLabel = map[f.veg_type] || f.veg_type.toLowerCase();
-        d.push(baseLabel + ' (' + f.veg_culture + ')');
-      } else {
-        d.push(map[f.veg_type] || f.veg_type.toLowerCase());
-      }
+      const m = { BROUSSAILLES:'broussailles', CULTURES_SUR_PIED:'cultures sur pied', CHAUMES:'chaumes', HERBACEE:'herbacée', HAIE:'haie', FOURRAGE:'fourrage' };
+      if (f.veg_type === 'AUTRE'){ if (f.veg_type_other) d.push(f.veg_type_other); }
+      else if (f.veg_culture && ['CULTURES_SUR_PIED','CHAUMES','HERBACEE','FOURRAGE'].includes(f.veg_type)){
+        d.push(`${m[f.veg_type] || f.veg_type.toLowerCase()} (${f.veg_culture})`);
+      } else { d.push(m[f.veg_type] || f.veg_type.toLowerCase()); }
     }
     if (f.veg_etat && f.veg_etat !== 'INCONNU'){
-      const map = {
-        DENSE:'dense', DISCONTINUE:'discontinue', HUMIDE:'humide', SECHE:'sèche', TRES_SECHE:'très sèche'
-      };
-      d.push(`végétation ${map[f.veg_etat] || f.veg_etat.toLowerCase()}`);
+      const m = { DENSE:'végétation dense', DISCONTINUE:'végétation discontinue', HUMIDE:'végétation humide', SECHE:'végétation sèche', TRES_SECHE:'végétation très sèche' };
+      d.push(m[f.veg_etat] || f.veg_etat.toLowerCase());
     }
 
     // Vent
     const vbits = [];
     if (f.vent_de && f.vent_de !== 'INCONNU') vbits.push(`de ${f.vent_de}`);
     if (f.vent_a && f.vent_a !== 'INCONNU') vbits.push(`à ${f.vent_a}`);
-    if (f.vent_force && f.vent_force !== 'INCONNU') vbits.push((f.vent_force === 'MODERE') ? 'modéré' : f.vent_force.toLowerCase());
+    if (f.vent_force && f.vent_force !== 'INCONNU'){
+      const vf = { MODERE:'modéré', FAIBLE:'faible', FORT:'fort', TRES_FORT:'très fort' };
+      vbits.push(vf[f.vent_force] || f.vent_force.toLowerCase());
+    }
     if (vbits.length) d.push(`vent ${vbits.join(' ')}`);
 
     // Situation
     if (f.situation){
-      const map = {
-        PROPAGATION_LIBRE:'en propagation libre',
-        FIXE:'fixé',
-        MAITRISE:'maîtrisé',
-        SOUS_SURVEILLANCE:'sous surveillance',
-        ETEINT:'éteint'
-      };
-      d.push(`feu ${map[f.situation] || f.situation.toLowerCase()}`);
+      const m = { PROPAGATION_LIBRE:'feu en propagation libre', FIXE:'feu fixé', MAITRISE:'feu maîtrisé', SOUS_SURVEILLANCE:'feu sous surveillance', ETEINT:'feu éteint' };
+      d.push(m[f.situation] || f.situation.toLowerCase());
     }
 
     // Surfaces
     if ((f.champ_env || '').trim()) d.push(`champ env. ${f.champ_env.trim()}`);
     if ((f.surface_menacee || '').trim()) d.push(`surface menacée ${f.surface_menacee.trim()}`);
 
-    // Enjeux menacés
+    // Enjeux menacés — phrase naturelle "avec présence de X à proximité"
     const men = (f.menaces && f.menaces.size) ? [...f.menaces].filter(x => x !== 'AUCUN') : [];
-    const menMap = { HABITATIONS:'habitations', ENGINS_AGRICOLES:'engins agricoles', VOIE_SNCF:'voie SNCF', RESEAU_ELEC:'réseau électrique', ROUTE:'route' };
-    const menParts = men
-      .filter(x => x !== 'AUTRE')
-      .map(x => menMap[x] || x.toLowerCase());
+    const menMap = {
+      HABITATIONS:       'habitations',
+      ENGINS_AGRICOLES:  'engins agricoles',
+      VOIE_SNCF:         'voie SNCF',
+      RESEAU_ELEC:       'réseau électrique',
+      ROUTE:             'route'
+    };
+    const menParts = men.filter(x => x !== 'AUTRE').map(x => menMap[x] || x.toLowerCase());
     if (f.menaces && f.menaces.has('AUTRE') && (f.menaces_other || '').trim()) menParts.push(f.menaces_other.trim());
-    if (menParts.length) d.push(`enjeux ${menParts.join(', ')}`);
+    if (menParts.length) {
+      // Phrase naturelle selon le nombre d'enjeux
+      if (menParts.length === 1) d.push(`avec présence de ${menParts[0]} à proximité`);
+      else d.push(`avec présence de ${menParts.slice(0,-1).join(', ')} et ${menParts[menParts.length-1]} à proximité`);
+    }
 
     // Actions en cours
     const acts = (f.actions && f.actions.size) ? [...f.actions] : [];
     const actMap = { DECHAUMAGE:'déchaumage par agriculteur', ATTAQUE_DIRECTE:'attaque directe', PROTECTION_ENJEUX:'protection enjeux', BALISAGE:'balisage' };
-    const actParts = acts
-      .filter(x => x !== 'AUTRE')
-      .map(x => actMap[x] || x.toLowerCase());
+    const actParts = acts.filter(x => x !== 'AUTRE').map(x => actMap[x] || x.toLowerCase());
     if (f.actions && f.actions.has('AUTRE') && (f.actions_other || '').trim()) actParts.push(f.actions_other.trim());
     if (actParts.length) d.push(`en cours : ${actParts.join(' / ')}`);
 
-    // Assembler : bits[0] = "Feu d'espace naturel", d contient les détails
-    if (d.length > 0) bits[0] = bits[0] + ", " + d.join(", ") + ".";
-    else bits[0] = bits[0] + ".";
+    // Assembler
+    if (d.length > 0) bits[0] = bits[0] + ", " + d.join(", ");
+    else bits[0] = bits[0];
   }
 
   if (state.incTypeLieu === "FDF"){
     const f = state.fdf || {};
-    const d = [];
-    // Reconstruire proprement sans répéter "Feu" + "FDF" + "Feu de forêt"
     bits.length = 0;
     bits.push("Feu de forêt");
-    if (f.acces && f.acces !== "INCONNU") d.push(`accès ${f.acces.toLowerCase()}`);
-    if (f.surface && f.surface !== "INCONNUE") d.push(`surface ${f.surface}`);
-    if ((f.vent_force && f.vent_force !== "INCONNU") || (f.vent_dir && f.vent_dir !== "INCONNU")){
-      const vbits = [];
-      if (f.vent_dir && f.vent_dir !== "INCONNU") vbits.push(f.vent_dir);
-      if (f.vent_force && f.vent_force !== "INCONNU") vbits.push(f.vent_force.toLowerCase());
-      if (vbits.length) d.push(`vent ${vbits.join(" ")}`);
+    const d = [];
+
+    // Accès
+    const accesMap = { FACILE:"accès facile", DIFFICILE:"accès difficile", PISTE:"accès par piste", IMPOSSIBLE:"accès impossible" };
+    if (f.acces && f.acces !== "INCONNU") d.push(accesMap[f.acces] || `accès ${f.acces.toLowerCase()}`);
+
+    // Surface
+    if (f.surface && f.surface !== "INCONNUE"){
+      const surfMap = { "<1ha":"surface inférieure à 1 ha", "1-5ha":"surface de 1 à 5 ha", "5-10ha":"surface de 5 à 10 ha", "10-25ha":"surface de 10 à 25 ha", ">25ha":"surface supérieure à 25 ha" };
+      d.push(surfMap[f.surface] || `surface ${f.surface}`);
     }
-    if (f.combustible && f.combustible !== "INCONNU") d.push(`combustible ${f.combustible.toLowerCase()}`);
+
+    // Vent
+    const vbits = [];
+    if (f.vent_dir && f.vent_dir !== "INCONNU") vbits.push(`de ${f.vent_dir}`);
+    if (f.vent_force && f.vent_force !== "INCONNU"){
+      const vfMap = { MODERE:"modéré", FAIBLE:"faible", FORT:"fort", TRES_FORT:"très fort", CALME:"calme" };
+      vbits.push(vfMap[f.vent_force] || f.vent_force.toLowerCase());
+    }
+    if (vbits.length) d.push(`vent ${vbits.join(", ")}`);
+
+    // Combustible
+    if (f.combustible && f.combustible !== "INCONNU"){
+      const combMap = { LITIERE:"litière", BROUSSAILLES:"broussailles", PINS_FEUILLUS:"pins et feuillus", RESINEUX:"résineux", FEUILLUS:"feuillus", MIXTE:"végétation mixte", CHAPARRAL:"chaparral", CHAUMES:"chaumes" };
+      d.push(`combustible : ${combMap[f.combustible] || f.combustible.toLowerCase()}`);
+    }
+
+    // Situation
+    if (f.situation && f.situation !== "INCONNU"){
+      const sitMap = { PROPAGATION_LIBRE:"feu en propagation libre", FIXE:"feu fixé", MAITRISE:"feu maîtrisé", SOUS_SURVEILLANCE:"feu sous surveillance", ETEINT:"feu éteint" };
+      d.push(sitMap[f.situation] || f.situation.toLowerCase());
+    }
+
+    // Enjeux
     const enj = (f.enjeux && f.enjeux.size) ? [...f.enjeux].filter(x => x !== "AUCUN" && x !== "INCONNU") : [];
-    if (enj.length) d.push(`enjeux ${enj.map(x=>x.toLowerCase()).join(", ")}`);
+    const enjMap = { HABITATIONS:"habitations", ENGINS:"engins", RESEAU_ELEC:"réseau électrique", ROUTE:"route", VOIE_SNCF:"voie SNCF" };
+    const enjPretty = enj.map(x => enjMap[x] || x.toLowerCase());
+    if (enjPretty.length === 1) d.push(`avec présence de ${enjPretty[0]} à proximité`);
+    else if (enjPretty.length > 1) d.push(`avec présence de ${enjPretty.slice(0,-1).join(", ")} et ${enjPretty[enjPretty.length-1]} à proximité`);
+
+    // Point d'eau
     if (f.eau && f.eau !== "INCONNUE"){
-      const map = { PI_PROCHE: "PI proche", RESERVE: "réserve", POINT_EAU_NATUREL: "point d’eau naturel", AUCUNE_IMMEDIATE: "aucune immédiate" };
-      d.push(`point d’eau : ${map[f.eau] || f.eau.toLowerCase()}`);
+      const eauMap = { PI_PROCHE:"PI proche", RESERVE:"réserve d'eau", POINT_EAU_NATUREL:"point d'eau naturel à proximité", AUCUNE_IMMEDIATE:"aucune ressource en eau immédiate" };
+      d.push(eauMap[f.eau] || f.eau.toLowerCase());
     }
-    // Assembler : bits[0] = "Feu de forêt", d contient les détails
-    if (d.length > 0) bits[0] = bits[0] + ", " + d.join(", ") + ".";
-    else bits[0] = bits[0] + ".";
+
+    if (d.length) bits[0] = bits[0] + ", " + d.join(", ");
   }
 
   if (state.incTypeLieu === "Agricole"){
@@ -8189,32 +8323,59 @@ if (state.incTypeLieu === "FEN"){
   (function(){
     const hasVal = (v)=>{ const t=(v||"").trim(); if(!t) return false; if(/^[0]+$/.test(t)) return false; return true; };
     if (state.incTypeLieu === "Immeuble partie commune"){
-      const evac = (state.immeubleEvacN || "").trim();
-      const conf = (state.immeubleConfN || "").trim();
-      if (hasVal(evac)) bits.push(`${evac} évacué${evac==="1"?"":"s"}`);
-      if (hasVal(conf)) bits.push(`${conf} confiné${conf==="1"?"":"s"}`);
+      const evacRaw = (state.lieuEvac && state.lieuEvac['immeuble'] > 0)
+        ? String(state.lieuEvac['immeuble'])
+        : (state.immeubleEvacN || "").trim();
+      const confRaw = (state.lieuConf && state.lieuConf['immeuble'] > 0)
+        ? String(state.lieuConf['immeuble'])
+        : (state.immeubleConfN || "").trim();
+      if (hasVal(evacRaw)) bits.push(`${evacRaw} personne${evacRaw==="1"?"":"s"} évacuée${evacRaw==="1"?"":"s"}`);
+      if (hasVal(confRaw)) bits.push(`${confRaw} personne${confRaw==="1"?"":"s"} confinée${confRaw==="1"?"":"s"}`);
     }
   })();
 
   // Détails Magasin / ERP
   if (state.incTypeLieu === "Magasin" || state.incTypeLieu === "ERP"){
     bits.length = 0;
-    const label = state.incTypeLieu === "ERP" ? "Feu d'ERP" : "Feu de magasin / commerce";
-    const d = [];
-    if (state.erpType) d.push(`type ${state.erpType}`);
-    if (state.erpCat) d.push(`catégorie ${state.erpCat}`);
-    if (state.erpSurface) d.push(`surface ${state.erpSurface}`);
-    bits.push(d.length ? `${label} (${d.join(", ")})` : label);
+    const erpTypeLabel = {
+      "M":"magasin", "N":"restaurant / débit de boisson", "W":"bureaux",
+      "R":"établissement d'enseignement", "U":"établissement de soins",
+      "J":"maison de retraite / accueil", "L":"salle de spectacles",
+      "O":"hôtel", "P":"discothèque / salle de jeux", "S":"bibliothèque",
+      "T":"exposition", "V":"lieu de culte", "X":"établissement sportif", "Y":"musée"
+    };
+    const vowels = 'aeiouéèêëàâùûîïo';
+    let mainPhrase;
+    if (state.erpType && erpTypeLabel[state.erpType]) {
+      const nom = erpTypeLabel[state.erpType];
+      mainPhrase = `Feu ${vowels.includes(nom[0].toLowerCase()) ? "d'" : "de "}${nom} (ERP type ${state.erpType})`;
+    } else if (state.erpType) {
+      mainPhrase = `Feu d'ERP type ${state.erpType}`;
+    } else {
+      mainPhrase = state.incTypeLieu === "ERP" ? "Feu d'ERP" : "Feu de magasin / commerce";
+    }
+    const details = [];
+    if (state.erpCat) details.push(`catégorie ${state.erpCat}`);
+    if (state.erpSurface) {
+      const surf = (state.erpSurface || "").trim();
+      details.push(`surface : ${surf}${surf.match(/m²|m2/i) ? "" : " m²"}`);
+    }
+    if (details.length) mainPhrase += `, ${details.join(", ")}`;
+    bits.push(mainPhrase);
   }
 
   // Personnes (évacuées / confinées) — Magasin/ERP
   (function(){
     const hasVal = (v)=>{ const t=(v||"").trim(); if(!t) return false; if(/^[0]+$/.test(t)) return false; return true; };
     if (state.incTypeLieu === "Magasin" || state.incTypeLieu === "ERP"){
-      const evac = (state.erpEvacN || "").trim();
-      const conf = (state.erpConfN || "").trim();
-      if (hasVal(evac)) bits.push(`${evac} évacué${evac==="1"?"":"s"}`);
-      if (hasVal(conf)) bits.push(`${conf} confiné${conf==="1"?"":"s"}`);
+      const evacRaw = (state.lieuEvac && state.lieuEvac['erp'] > 0)
+        ? String(state.lieuEvac['erp'])
+        : (state.erpEvacN || "").trim();
+      const confRaw = (state.lieuConf && state.lieuConf['erp'] > 0)
+        ? String(state.lieuConf['erp'])
+        : (state.erpConfN || "").trim();
+      if (hasVal(evacRaw)) bits.push(`${evacRaw} personne${evacRaw==="1"?"":"s"} évacuée${evacRaw==="1"?"":"s"}`);
+      if (hasVal(confRaw)) bits.push(`${confRaw} personne${confRaw==="1"?"":"s"} confinée${confRaw==="1"?"":"s"}`);
       if (state.erpSSI) bits.push("SSI déclenché");
       if (state.erpAgents) bits.push("agents de sécurité sur les lieux");
     }
@@ -8242,9 +8403,19 @@ if (state.incTypeLieu === "FEN"){
     let gazTxt = state.incTypeLieu || "Fuite de gaz";
     // Si "Fuite de gaz autre" avec type sélectionné
     if (state.incTypeLieu === "Fuite de gaz autre" && state.gazType) {
-      gazTxt = `Fuite de gaz ${state.gazType.toLowerCase()}`;
+      // CO et H2S : formulation "Présence de/d'"
+      if (state.gazType === "CO") gazTxt = "Présence de CO (monoxyde de carbone)";
+      else if (state.gazType === "H2S") gazTxt = "Présence d'H2S (sulfure d'hydrogène)";
+      else gazTxt = `Fuite de gaz ${state.gazType.toLowerCase()}`;
     }
     bits.push(gazTxt);
+    // Localisation (uniquement pour fuite de gaz autre)
+    if (state.incTypeLieu === "Fuite de gaz autre") {
+      const locMap = { HABITATION: "en habitation", LOCAL_FERME: "en local fermé", LOCAL_OUVERT: "en local ouvert", EXTERIEUR: "en extérieur" };
+      if (state.gazLocalisation && locMap[state.gazLocalisation]) bits.push(locMap[state.gazLocalisation]);
+      const oriMap = { CANALISATION: "fuite sur canalisation", CUVE: "fuite sur cuve", CHAUFFAGE: "chauffage défectueux" };
+      if (state.gazOrigine && oriMap[state.gazOrigine]) bits.push(oriMap[state.gazOrigine]);
+    }
     // Périmètre
     if (state.gazPerimetre) {
       const per = state.gazPerimetre === "REALISE" ? "périmètre de sécurité de 50 mètres réalisé" : "périmètre de sécurité de 50 mètres en cours";
@@ -8256,8 +8427,7 @@ if (state.incTypeLieu === "FEN"){
     const gazConf = (state.gazConfN||"").trim();
     if (hasVal(gazEvac)) bits.push(`${gazEvac} personne${gazEvac==="1"?"":"s"} évacuée${gazEvac==="1"?"":"s"}`);
     if (hasVal(gazConf)) bits.push(`${gazConf} personne${gazConf==="1"?"":"s"} confinée${gazConf==="1"?"":"s"}`);
-    // PGR → va dans JE DEMANDE, pas JE VOIS
-    // (géré dans buildMessage via demandePgr)
+    // PGR → va dans JE DEMANDE
   }
 
   // Détails Transformateur
@@ -11377,10 +11547,12 @@ function formatMessageLitteraire(msg){
         // Protéger les slash légitimes avant la transformation
         .replace(/\bbus\/car\b/gi, "BUS_SLASH_CAR")
         .replace(/\bvélo\/trottinette\b/gi, "VELO_SLASH_TROTT")
+        .replace(/\bmagasin\s*\/\s*commerce\b/gi, "MAGASIN_SLASH_COMMERCE")
         .replace(/\s*\/\s*/g, " avec ")
         // Restaurer les slash protégés
         .replace(/BUS_SLASH_CAR/g, "bus/car")
         .replace(/VELO_SLASH_TROTT/g, "vélo/trottinette")
+        .replace(/MAGASIN_SLASH_COMMERCE/g, "magasin / commerce")
         .replace(/\s*—\s*/g, ", ")
         .replace(/,\s*,+/g, ", ")
         .replace(/,\s*(avec combles(?: aménagés)?)/gi, " $1")
@@ -15473,6 +15645,8 @@ try{ refreshGlobalCards(); }catch(e){}
     state.gazEvacuation = 0;
     state.gazEvacN = '';
     state.gazConfN = '';
+    state.gazLocalisation = '';
+    state.gazOrigine = '';
     state.electriqueType = '';
     state.electriqueAutre = '';
     state.electriqueTransfoPoste = '';

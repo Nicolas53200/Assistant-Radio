@@ -2421,6 +2421,45 @@ section.card[data-card="photosInterv"]{
             </div>
           </div>
         </div>
+        <!-- Panneau Bâtiment désaffecté -->
+        <div id="lieu_batiment_desaffecte" class="lieu-panel" hidden>
+          <div class="section-title">🏚️ Bâtiment désaffecté</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+            <div class="subcard tight">
+              <div class="subcard-title" style="font-size:13px;margin-bottom:6px;">Type</div>
+              <div style="display:flex;flex-direction:column;gap:5px;" id="desaffTypeChips">
+                <button class="chip" type="button" data-desafftype="immeuble" style="width:100%;text-align:center;">Immeuble</button>
+                <button class="chip" type="button" data-desafftype="maison" style="width:100%;text-align:center;">Maison</button>
+                <button class="chip" type="button" data-desafftype="entrepot" style="width:100%;text-align:center;">Entrepôt</button>
+                <button class="chip" type="button" data-desafftype="usine" style="width:100%;text-align:center;">Usine</button>
+                <button class="chip" type="button" data-desafftype="autre" style="width:100%;text-align:center;">Autre</button>
+              </div>
+            </div>
+            <div class="subcard tight">
+              <div class="subcard-title" style="font-size:13px;margin-bottom:6px;">État structure</div>
+              <div style="display:flex;flex-direction:column;gap:5px;" id="desaffStructureChips">
+                <button class="chip" type="button" data-desaffstruct="degradee" style="width:100%;text-align:center;">⚠️ Dégradée</button>
+                <button class="chip" type="button" data-desaffstruct="inconnue" style="width:100%;text-align:center;">Inconnue</button>
+                <button class="chip" type="button" data-desaffstruct="correcte" style="width:100%;text-align:center;">Correcte</button>
+              </div>
+            </div>
+          </div>
+          <div class="subcard tight" style="margin-top:8px;">
+            <div class="subcard-title" style="font-size:13px;margin-bottom:6px;">👤 Présence de squatteurs</div>
+            <div class="chips center" id="desaffSquatChips">
+              <button class="chip" type="button" data-desaffsquat="OUI">Oui</button>
+              <button class="chip" type="button" data-desaffsquat="NON">Non</button>
+              <button class="chip" type="button" data-desaffsquat="INCONNU">Inconnu</button>
+            </div>
+            <div id="desaffSquatNbWrap" hidden style="margin-top:8px;">
+              <div class="section-title" style="font-size:11px;margin-bottom:4px;">Nombre estimé</div>
+              <input id="desaffSquatN" type="text" inputmode="numeric" placeholder="nb estimé"
+                style="text-align:center;font-size:18px;font-weight:900;"
+                oninput="if(window.state){state.desaffSquatN=this.value.trim();if(typeof updatePreview==='function')updatePreview();}" />
+            </div>
+          </div>
+        </div>
+
         <div id="lieu_entreprise" class="lieu-panel" hidden>
           <div class="section-title">🏭 Entreprise / Industrie</div>
 
@@ -4541,6 +4580,7 @@ updateIncStepUI();
       "ERP",
       "Entreprise / Industrie",
       "Chaufferie",
+      "Bâtiment désaffecté",
       "Cheminée",
       "PL",
       "Cave",
@@ -4572,6 +4612,7 @@ updateIncStepUI();
     "ERP",
     "Entreprise / Industrie",
     "Chaufferie",
+    "Bâtiment désaffecté",
     "Cheminée",
     "PL",
     "Cave",
@@ -5226,6 +5267,16 @@ if (state.incTypeLieu === "Pavillon") { const p = $("#lieu_pavillon"); if (p) p.
         }, 100);
       }
     }
+  }
+
+  if (state.incTypeLieu === "Bâtiment désaffecté") {
+    var dp = document.getElementById("lieu_batiment_desaffecte");
+    if(dp) dp.hidden = false;
+    document.querySelectorAll("#desaffTypeChips [data-desafftype]").forEach(function(b){b.classList.toggle("active",b.dataset.desafftype===state.desaffType);});
+    document.querySelectorAll("#desaffStructureChips [data-desaffstruct]").forEach(function(b){b.classList.toggle("active",b.dataset.desaffstruct===state.desaffStructure);});
+    document.querySelectorAll("#desaffSquatChips [data-desaffsquat]").forEach(function(b){b.classList.toggle("active",b.dataset.desaffsquat===state.desaffSquat);});
+    var nbWrap2=document.getElementById("desaffSquatNbWrap"); if(nbWrap2) nbWrap2.hidden=state.desaffSquat!=="OUI";
+    var nbInp2=document.getElementById("desaffSquatN"); if(nbInp2&&document.activeElement!==nbInp2) nbInp2.value=state.desaffSquatN||"";
   }
 
   if (state.incTypeLieu === "Chaufferie") {
@@ -6690,6 +6741,26 @@ function renderAgricoleDetails(){
     if (magWrap) magWrap.hidden = state.erpType !== "M";
     if (state.erpType !== "M") { state.erpMagasin = ""; state.erpMagasinAutre = ""; }
     updatePreview && updatePreview();
+  });
+
+  if (!state.hasOwnProperty('desaffType')) state.desaffType = "";
+  if (!state.hasOwnProperty('desaffStructure')) state.desaffStructure = "";
+  if (!state.hasOwnProperty('desaffSquat')) state.desaffSquat = "";
+  if (!state.hasOwnProperty('desaffSquatN')) state.desaffSquatN = "";
+
+  // Wiring Bâtiment désaffecté
+  document.addEventListener("click", function(e){
+    var tBtn = e.target.closest("#desaffTypeChips [data-desafftype]");
+    if(tBtn){ state.desaffType=state.desaffType===tBtn.dataset.desafftype?"":tBtn.dataset.desafftype; document.querySelectorAll("#desaffTypeChips [data-desafftype]").forEach(function(b){b.classList.toggle("active",b.dataset.desafftype===state.desaffType);}); if(typeof updatePreview==='function')updatePreview(); return; }
+    var sBtn = e.target.closest("#desaffStructureChips [data-desaffstruct]");
+    if(sBtn){ state.desaffStructure=state.desaffStructure===sBtn.dataset.desaffstruct?"":sBtn.dataset.desaffstruct; document.querySelectorAll("#desaffStructureChips [data-desaffstruct]").forEach(function(b){b.classList.toggle("active",b.dataset.desaffstruct===state.desaffStructure);}); if(typeof updatePreview==='function')updatePreview(); return; }
+    var qBtn = e.target.closest("#desaffSquatChips [data-desaffsquat]");
+    if(qBtn){
+      state.desaffSquat=state.desaffSquat===qBtn.dataset.desaffsquat?"":qBtn.dataset.desaffsquat;
+      document.querySelectorAll("#desaffSquatChips [data-desaffsquat]").forEach(function(b){b.classList.toggle("active",b.dataset.desaffsquat===state.desaffSquat);});
+      var nbWrap=document.getElementById("desaffSquatNbWrap"); if(nbWrap) nbWrap.hidden=state.desaffSquat!=="OUI";
+      if(typeof updatePreview==='function')updatePreview(); return;
+    }
   });
 
   // Wiring Chaufferie — délégation sur document
@@ -8487,7 +8558,7 @@ function buildIncAmbianceJeVois(){
     } else {
       // Ne pas re-push si un bloc dédié va gérer bits.length = 0
       var blocsDedie = ["FEN","FDF","Pavillon","Appartement","Immeuble partie commune",
-        "Magasin","ERP","Chaufferie","Garage","Entreprise / Industrie","Cheminée",
+        "Magasin","ERP","Chaufferie","Bâtiment désaffecté","Garage","Entreprise / Industrie","Cheminée",
         "Electrique","VL","PL","Agricole"];
       if (!blocsDedie.includes(state.incTypeLieu)) {
         // Construire phrase naturelle
@@ -8741,6 +8812,24 @@ if (state.incTypeLieu === "FEN"){
       if (hasVal(confRaw)) bits.push(`${confRaw} personne${confRaw==="1"?"":"s"} confinée${confRaw==="1"?"":"s"}`);
     }
   })();
+
+  // Détails Bâtiment désaffecté
+  if (state.incTypeLieu === "Bâtiment désaffecté") {
+    bits.length = 0;
+    var typeMap2 = {immeuble:"immeuble désaffecté",maison:"maison désaffectée",entrepot:"entrepôt désaffecté",usine:"usine désaffectée",autre:"bâtiment désaffecté"};
+    var structMap = {degradee:"structure dégradée",inconnue:"état de la structure inconnu",correcte:""};
+    var typeTxt2 = typeMap2[state.desaffType] || "bâtiment désaffecté";
+    var vowels2 = 'aeiouéèêëàâùûîïo';
+    var phrase = (vowels2.includes(typeTxt2[0].toLowerCase()) ? "Feu d'" : "Feu de ") + typeTxt2;
+    bits.push(phrase);
+    if (state.desaffStructure && structMap[state.desaffStructure]) bits.push(structMap[state.desaffStructure]);
+    if (state.desaffSquat === "OUI") {
+      var nb = (state.desaffSquatN||"").trim();
+      bits.push(nb ? `présence de squatteurs, nombre estimé : ${nb}` : "présence de squatteurs signalée");
+    } else if (state.desaffSquat === "INCONNU") {
+      bits.push("présence de personnes à vérifier");
+    }
+  }
 
   // Détails Chaufferie
   if (state.incTypeLieu === "Chaufferie") {

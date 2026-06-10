@@ -2397,10 +2397,11 @@ section.card[data-card="photosInterv"]{
             </div>
           </div>
 
-          <!-- Dans un ERP -->
+          <!-- Dans un bâtiment -->
           <div class="subcard tight" style="margin-top:8px;">
-            <div class="subcard-title" style="font-size:13px;margin-bottom:6px;">🏥 Dans un ERP ?</div>
+            <div class="subcard-title" style="font-size:13px;margin-bottom:6px;">🏢 Dans un bâtiment ?</div>
             <div class="chips center" id="chaufferieErpChips" style="gap:6px;">
+              <button class="chip" type="button" data-chauferp="IMMEUBLE">Immeuble d'habitation</button>
               <button class="chip" type="button" data-chauferp="U">Hôpital / Clinique (U)</button>
               <button class="chip" type="button" data-chauferp="J">Maison de retraite (J)</button>
               <button class="chip" type="button" data-chauferp="R">École / Enseignement (R)</button>
@@ -8746,7 +8747,7 @@ if (state.incTypeLieu === "FEN"){
     bits.length = 0;
     var energieLabel = {gaz:"gaz",fuel:"fuel",bois:"bois",electrique:"électrique",mixte:"mixte"};
     var locLabel = {sous_sol:"en sous-sol",rdc:"au rez-de-chaussée",local_technique:"en local technique",toit_terrasse:"en toit-terrasse"};
-    var erpLabel = {U:"établissement de soins (ERP type U)",J:"maison de retraite (ERP type J)",R:"établissement scolaire (ERP type R)",O:"hôtel (ERP type O)",AUTRE_ERP:"ERP"};
+    var erpLabel = {IMMEUBLE:"immeuble d'habitation",U:"établissement de soins (ERP type U)",J:"maison de retraite (ERP type J)",R:"établissement scolaire (ERP type R)",O:"hôtel (ERP type O)",AUTRE_ERP:"ERP"};
     var risqLabel = {pression:"chaudière sous pression",fuite_gaz:"fuite gaz",cuve_fuel:"cuve fuel",silo_bois:"silo bois"};
 
     var energie = state.chaufferieEnergie ? energieLabel[state.chaufferieEnergie] || state.chaufferieEnergie : "";
@@ -9028,6 +9029,7 @@ if (state.incTypeLieu === "FEN"){
   }
 
   // Détails Cheminée
+  if (state.incTypeLieu === "Cheminée") {
     bits.length = 0;
     // Lire dynamiquement (en cas de reset du Set)
     var appSet = (state.chemineAppareil instanceof Set) ? state.chemineAppareil : new Set();

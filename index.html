@@ -2168,6 +2168,13 @@ section.card[data-card="photosInterv"]{
                   <button class="chip" type="button" data-cinetique="FAIBLE">Faible</button>
                 </div>
               </div>
+              <div>
+                <div class="section-title">Forte déformation</div>
+                <div class="chips center" id="avpDeformChips" aria-label="Déformation">
+                  <button class="chip" type="button" data-deform="IMPORTANTE">Importante</button>
+                  <button class="chip" type="button" data-deform="FAIBLE">Faible</button>
+                </div>
+              </div>
             </div>
 
             <!-- avpVehiclesList caché mais conservé pour JS -->
@@ -2362,7 +2369,57 @@ section.card[data-card="photosInterv"]{
           <button class="chip" type="button" data-lieu="fen">FEN</button>
         </div>
 
-        <!-- Panneau Entreprise / Industrie -->
+        <!-- Panneau Chaufferie -->
+        <div id="lieu_chaufferie" class="lieu-panel" hidden>
+          <div class="section-title">🔥 Chaufferie</div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;">
+            <!-- Énergie -->
+            <div class="subcard tight">
+              <div class="subcard-title" style="font-size:13px;margin-bottom:6px;">Énergie</div>
+              <div style="display:flex;flex-direction:column;gap:5px;" id="chaufferieEnergieChips">
+                <button class="chip" type="button" data-chaufenergie="gaz" style="width:100%;text-align:center;">🔵 Gaz</button>
+                <button class="chip" type="button" data-chaufenergie="fuel" style="width:100%;text-align:center;">🟠 Fuel</button>
+                <button class="chip" type="button" data-chaufenergie="bois" style="width:100%;text-align:center;">🪵 Bois</button>
+                <button class="chip" type="button" data-chaufenergie="electrique" style="width:100%;text-align:center;">⚡ Électrique</button>
+                <button class="chip" type="button" data-chaufenergie="mixte" style="width:100%;text-align:center;">🔄 Mixte</button>
+              </div>
+            </div>
+            <!-- Localisation -->
+            <div class="subcard tight">
+              <div class="subcard-title" style="font-size:13px;margin-bottom:6px;">Localisation</div>
+              <div style="display:flex;flex-direction:column;gap:5px;" id="chaufferieLocChips">
+                <button class="chip" type="button" data-chaufloc="sous_sol" style="width:100%;text-align:center;">Sous-sol</button>
+                <button class="chip" type="button" data-chaufloc="rdc" style="width:100%;text-align:center;">Rez-de-chaussée</button>
+                <button class="chip" type="button" data-chaufloc="local_technique" style="width:100%;text-align:center;">Local technique</button>
+                <button class="chip" type="button" data-chaufloc="toit_terrasse" style="width:100%;text-align:center;">Toit-terrasse</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dans un ERP -->
+          <div class="subcard tight" style="margin-top:8px;">
+            <div class="subcard-title" style="font-size:13px;margin-bottom:6px;">🏥 Dans un ERP ?</div>
+            <div class="chips center" id="chaufferieErpChips" style="gap:6px;">
+              <button class="chip" type="button" data-chauferp="U">Hôpital / Clinique (U)</button>
+              <button class="chip" type="button" data-chauferp="J">Maison de retraite (J)</button>
+              <button class="chip" type="button" data-chauferp="R">École / Enseignement (R)</button>
+              <button class="chip" type="button" data-chauferp="O">Hôtel (O)</button>
+              <button class="chip" type="button" data-chauferp="AUTRE_ERP">Autre ERP</button>
+            </div>
+          </div>
+
+          <!-- Risques -->
+          <div class="subcard tight" style="margin-top:8px;">
+            <div class="subcard-title" style="font-size:13px;margin-bottom:6px;">⚠️ Risques</div>
+            <div class="chips center" id="chaufferieRisquesChips" style="gap:6px;">
+              <button class="chip" type="button" data-chaufrisque="pression">Chaudière sous pression</button>
+              <button class="chip" type="button" data-chaufrisque="fuite_gaz">Fuite gaz</button>
+              <button class="chip" type="button" data-chaufrisque="cuve_fuel">Cuve fuel</button>
+              <button class="chip" type="button" data-chaufrisque="silo_bois">Silo bois</button>
+            </div>
+          </div>
+        </div>
         <div id="lieu_entreprise" class="lieu-panel" hidden>
           <div class="section-title">🏭 Entreprise / Industrie</div>
 
@@ -4482,8 +4539,8 @@ updateIncStepUI();
       "Magasin",
       "ERP",
       "Entreprise / Industrie",
+      "Chaufferie",
       "Cheminée",
-      "VL",
       "PL",
       "Cave",
       "Garage",
@@ -4513,8 +4570,8 @@ updateIncStepUI();
     "Magasin",
     "ERP",
     "Entreprise / Industrie",
+    "Chaufferie",
     "Cheminée",
-    "VL",
     "PL",
     "Cave",
     "Garage",
@@ -5168,6 +5225,15 @@ if (state.incTypeLieu === "Pavillon") { const p = $("#lieu_pavillon"); if (p) p.
         }, 100);
       }
     }
+  }
+
+  if (state.incTypeLieu === "Chaufferie") {
+    var cp = document.getElementById("lieu_chaufferie");
+    if(cp) cp.hidden = false;
+    document.querySelectorAll("#chaufferieEnergieChips [data-chaufenergie]").forEach(function(b){ b.classList.toggle("active", b.dataset.chaufenergie === state.chaufferieEnergie); });
+    document.querySelectorAll("#chaufferieLocChips [data-chaufloc]").forEach(function(b){ b.classList.toggle("active", b.dataset.chaufloc === state.chaufferieLocalisation); });
+    document.querySelectorAll("#chaufferieErpChips [data-chauferp]").forEach(function(b){ b.classList.toggle("active", b.dataset.chauferp === state.chaufferieErp); });
+    document.querySelectorAll("#chaufferieRisquesChips [data-chaufrisque]").forEach(function(b){ b.classList.toggle("active", state.chaufferieRisques instanceof Set && state.chaufferieRisques.has(b.dataset.chaufrisque)); });
   }
 
   if (state.incTypeLieu === "Garage") {
@@ -6599,6 +6665,10 @@ function renderAgricoleDetails(){
   if (!state.hasOwnProperty('garageSurface')) state.garageSurface = "";
   if (!state.hasOwnProperty('garageVeh')) state.garageVeh = "";
   if (!state.hasOwnProperty('garageVE')) state.garageVE = false;
+  if (!state.hasOwnProperty('chaufferieEnergie')) state.chaufferieEnergie = "";
+  if (!state.hasOwnProperty('chaufferieLocalisation')) state.chaufferieLocalisation = "";
+  if (!state.hasOwnProperty('chaufferieErp')) state.chaufferieErp = "";
+  if (!(state.chaufferieRisques instanceof Set)) state.chaufferieRisques = new Set();
 
   function sync(){
     if (typeEl) typeEl.value = state.erpType || "";
@@ -6619,6 +6689,18 @@ function renderAgricoleDetails(){
     if (magWrap) magWrap.hidden = state.erpType !== "M";
     if (state.erpType !== "M") { state.erpMagasin = ""; state.erpMagasinAutre = ""; }
     updatePreview && updatePreview();
+  });
+
+  // Wiring Chaufferie — délégation sur document
+  document.addEventListener("click", function(e){
+    var eBtn = e.target.closest("#chaufferieEnergieChips [data-chaufenergie]");
+    if(eBtn){ state.chaufferieEnergie = state.chaufferieEnergie===eBtn.dataset.chaufenergie?"":eBtn.dataset.chaufenergie; document.querySelectorAll("#chaufferieEnergieChips [data-chaufenergie]").forEach(function(b){b.classList.toggle("active",b.dataset.chaufenergie===state.chaufferieEnergie);}); if(typeof updatePreview==='function')updatePreview(); return; }
+    var lBtn = e.target.closest("#chaufferieLocChips [data-chaufloc]");
+    if(lBtn){ state.chaufferieLocalisation = state.chaufferieLocalisation===lBtn.dataset.chaufloc?"":lBtn.dataset.chaufloc; document.querySelectorAll("#chaufferieLocChips [data-chaufloc]").forEach(function(b){b.classList.toggle("active",b.dataset.chaufloc===state.chaufferieLocalisation);}); if(typeof updatePreview==='function')updatePreview(); return; }
+    var erpBtn = e.target.closest("#chaufferieErpChips [data-chauferp]");
+    if(erpBtn){ state.chaufferieErp = state.chaufferieErp===erpBtn.dataset.chauferp?"":erpBtn.dataset.chauferp; document.querySelectorAll("#chaufferieErpChips [data-chauferp]").forEach(function(b){b.classList.toggle("active",b.dataset.chauferp===state.chaufferieErp);}); if(typeof updatePreview==='function')updatePreview(); return; }
+    var rBtn = e.target.closest("#chaufferieRisquesChips [data-chaufrisque]");
+    if(rBtn){ if(!(state.chaufferieRisques instanceof Set)) state.chaufferieRisques=new Set(); var v=rBtn.dataset.chaufrisque; if(state.chaufferieRisques.has(v))state.chaufferieRisques.delete(v);else state.chaufferieRisques.add(v); document.querySelectorAll("#chaufferieRisquesChips [data-chaufrisque]").forEach(function(b){b.classList.toggle("active",state.chaufferieRisques.has(b.dataset.chaufrisque));}); if(typeof updatePreview==='function')updatePreview(); return; }
   });
 
   // Wiring Garage — délégation sur document
@@ -8390,20 +8472,29 @@ function buildIncAmbianceJeVois(){
     else bits.push(state.incNature);
   }
 
-  // Type / lieu (nouvelle UI)
+  // Type / lieu — pour les types sans bloc dédié, construire une phrase naturelle
   if (state.incTypeLieu){
     if (state.incTypeLieu === "Autre"){
       var precis = (state.incTypeLieuOther || "").trim();
-      bits.length = 0; // évite "Feu, Feu de X"
+      bits.length = 0;
       if (precis) {
-        var vowels = 'aeiouéèêëàâùûîïo';
-        var elide = vowels.includes(precis[0].toLowerCase());
-        bits.push(elide ? `Feu d'${precis}` : `Feu de ${precis}`);
+        var vowels0 = 'aeiouéèêëàâùûîïo';
+        bits.push(vowels0.includes(precis[0].toLowerCase()) ? `Feu d'${precis}` : `Feu de ${precis}`);
       } else {
         bits.push("Feu (à préciser)");
       }
     } else {
-      bits.push(state.incTypeLieu);
+      // Ne pas re-push si un bloc dédié va gérer bits.length = 0
+      var blocsDedie = ["FEN","FDF","Pavillon","Appartement","Immeuble partie commune",
+        "Magasin","ERP","Chaufferie","Garage","Entreprise / Industrie","Cheminée",
+        "Electrique","VL","PL","Agricole"];
+      if (!blocsDedie.includes(state.incTypeLieu)) {
+        // Construire phrase naturelle
+        bits.length = 0;
+        var vowels1 = 'aeiouéèêëàâùûîïo';
+        var tl = state.incTypeLieu.toLowerCase();
+        bits.push(vowels1.includes(tl[0]) ? `Feu d'${tl}` : `Feu de ${tl}`);
+      }
     }
   }
 
@@ -8550,16 +8641,14 @@ if (state.incTypeLieu === "FEN"){
   }
 
   if (state.incTypeLieu === "Agricole"){
-    // Si un message agricole a été généré, on l'utilise directement en JE VOIS.
-    // (Sinon, fallback sur chemin Catégorie / Type.)
     var msg = (state.incAgricoleJeVois || "").trim();
     if (msg){
       bits.push(msg);
-    } else {
-      var d = [];
-      if (state.incAgricoleCategory) d.push(state.incAgricoleCategory);
-      if (state.incAgricoleLeafLabel) d.push(state.incAgricoleLeafLabel);
-      if (d.length) bits.push(d.join(" / "));
+    } else if (state.incAgricoleLeafLabel) {
+      bits.length = 0;
+      var vowelsAg = 'aeiouéèêëàâùûîïo';
+      var lb = state.incAgricoleLeafLabel.toLowerCase();
+      bits.push(vowelsAg.includes(lb[0]) ? `Feu d'${lb}` : `Feu de ${lb}`);
     }
   }
 
@@ -8604,15 +8693,15 @@ if (state.incTypeLieu === "FEN"){
     if (state.appCaveOn) txt += ", feu en cave";
 
     var locMap = {
-      RDC: "feu au rez-de-chaussée",
-      ETAGE: "feu à l'étage",
-      COMBLES: "feu dans les combles",
-      CUISINE: "feu dans la cuisine",
-      SALON: "feu dans le salon",
-      CHAMBRE: "feu dans une chambre",
-      BUANDERIE: "feu dans la buanderie"
+      RDC: "au rez-de-chaussée",
+      ETAGE: "à l'étage",
+      COMBLES: "dans les combles",
+      CUISINE: "dans la cuisine",
+      SALON: "dans le salon",
+      CHAMBRE: "dans une chambre",
+      BUANDERIE: "dans la buanderie"
     };
-    if (state.incFireLocation && locMap[state.incFireLocation]) txt += txt.includes(",") ? `, ${locMap[state.incFireLocation]}` : `, ${locMap[state.incFireLocation]}`;
+    if (state.incFireLocation && locMap[state.incFireLocation]) txt += `, feu ${locMap[state.incFireLocation]}`;
     if (state.incFirePropagation) txt += ", risque de propagation";
     bits.push(txt);
 
@@ -8651,6 +8740,34 @@ if (state.incTypeLieu === "FEN"){
       if (hasVal(confRaw)) bits.push(`${confRaw} personne${confRaw==="1"?"":"s"} confinée${confRaw==="1"?"":"s"}`);
     }
   })();
+
+  // Détails Chaufferie
+  if (state.incTypeLieu === "Chaufferie") {
+    bits.length = 0;
+    var energieLabel = {gaz:"gaz",fuel:"fuel",bois:"bois",electrique:"électrique",mixte:"mixte"};
+    var locLabel = {sous_sol:"en sous-sol",rdc:"au rez-de-chaussée",local_technique:"en local technique",toit_terrasse:"en toit-terrasse"};
+    var erpLabel = {U:"établissement de soins (ERP type U)",J:"maison de retraite (ERP type J)",R:"établissement scolaire (ERP type R)",O:"hôtel (ERP type O)",AUTRE_ERP:"ERP"};
+    var risqLabel = {pression:"chaudière sous pression",fuite_gaz:"fuite gaz",cuve_fuel:"cuve fuel",silo_bois:"silo bois"};
+
+    var energie = state.chaufferieEnergie ? energieLabel[state.chaufferieEnergie] || state.chaufferieEnergie : "";
+    var phrase = energie ? `Feu de chaufferie ${energie}` : "Feu de chaufferie";
+
+    // ERP
+    if (state.chaufferieErp && erpLabel[state.chaufferieErp]) {
+      phrase += ` dans un ${erpLabel[state.chaufferieErp]}`;
+    }
+    // Localisation
+    if (state.chaufferieLocalisation && locLabel[state.chaufferieLocalisation]) {
+      phrase += `, ${locLabel[state.chaufferieLocalisation]}`;
+    }
+    bits.push(phrase);
+
+    // Risques
+    var risques = state.chaufferieRisques instanceof Set ? [...state.chaufferieRisques] : [];
+    var risqPretty = risques.map(function(r){ return risqLabel[r]||r; }).filter(Boolean);
+    if (risqPretty.length === 1) bits.push(`risque : ${risqPretty[0]}`);
+    else if (risqPretty.length > 1) bits.push(`risques : ${risqPretty.slice(0,-1).join(', ')} et ${risqPretty[risqPretty.length-1]}`);
+  }
 
   // Détails Garage
   if (state.incTypeLieu === "Garage") {
@@ -8910,8 +9027,7 @@ if (state.incTypeLieu === "FEN"){
     else bits.push("Feu de transformateur");
   }
 
-  // Détails Electrique
-  if (state.incTypeLieu === "Cheminée") {
+  // Détails Cheminée
     bits.length = 0;
     // Lire dynamiquement (en cas de reset du Set)
     var appSet = (state.chemineAppareil instanceof Set) ? state.chemineAppareil : new Set();
@@ -9247,6 +9363,7 @@ function ensureAvpState(){
   if (typeof state.avpStep !== "number") state.avpStep = 0;
   if (!Array.isArray(state.avpVehicles)) state.avpVehicles = [];
   if (typeof state.avpCinetique !== "string") state.avpCinetique = "";
+  if (typeof state.avpDeform !== "string") state.avpDeform = "";
   // NE PAS recréer le tableau avec map : ça perd les modifications en cours
   // Normaliser uniquement les entrées manquantes
   for(var _i=0; _i<state.avpVehicles.length; _i++){
@@ -10937,6 +11054,10 @@ function buildAvpAmbianceJeVois(){
   if (state.avpCinetique){
     bits.push(`cinétique ${state.avpCinetique === 'IMPORTANTE' ? 'importante' : 'faible'}`);
   }
+  // ── Forte déformation ──
+  if (state.avpDeform){
+    bits.push(state.avpDeform === 'IMPORTANTE' ? 'forte déformation' : 'déformation faible');
+  }
 
   // ── Bilan victimes ──
   var isDefinitif = state.rensVictimReportType === "DEFINITIF";
@@ -11089,6 +11210,25 @@ function wireAvpAmbiance(){
       });
     });
     refreshCinetique();
+  }
+
+  var deformEl = $("#avpDeformChips");
+  if (deformEl){
+    var refreshDeform = ()=>{
+      deformEl.querySelectorAll("button[data-deform]").forEach(btn=>{
+        btn.classList.toggle("active", btn.dataset.deform === (state.avpDeform || ""));
+      });
+    };
+    deformEl.querySelectorAll("button[data-deform]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        ensureAvpState();
+        var next = btn.dataset.deform || "";
+        state.avpDeform = (state.avpDeform === next) ? "" : next;
+        refreshDeform();
+        updateOutput();
+      });
+    });
+    refreshDeform();
   }
 }
 
@@ -13847,6 +13987,8 @@ try{ refreshGlobalCards(); }catch(e){}
     // Cinétique
     if(window.state && state.avpCinetique === 'IMPORTANTE') bits.push('cinétique importante');
     if(window.state && state.avpCinetique === 'FAIBLE') bits.push('cinétique faible');
+    if(window.state && state.avpDeform === 'IMPORTANTE') bits.push('forte déformation');
+    if(window.state && state.avpDeform === 'FAIBLE') bits.push('déformation faible');
 
     // Bilan victimes — priorité aux bilans piéton/vélo/trottinette explicites
     var pietBilansM = sorted_mb.filter(function(v){ return ['PIETON','VELO','TROTTINETTE'].indexOf(v.type) >= 0 && v.pietBilan; })
@@ -16280,6 +16422,7 @@ try{ refreshGlobalCards(); }catch(e){}
     state.lieuEvac = {};
     state.lieuConf = {};
     state.avpCinetique = '';
+    state.avpDeform = '';
     state.avpSiteSec = '';
     state.avpDesinc = '';
     state.avpTraffic = new Set();

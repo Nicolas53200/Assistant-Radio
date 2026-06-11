@@ -2841,6 +2841,29 @@ section.card[data-card="photosInterv"]{
           <label>Surface (option)</label>
           <input id="erp_surface" placeholder="ex : 80 m²" />
         
+          <!-- Localisation précise du feu -->
+          <div class="subcard tight" style="margin-top:12px;">
+            <div class="subcard-title">📍 Localisation du feu</div>
+            <div class="chips center" id="erpFeuLocChips" style="margin-top:8px;gap:6px;">
+              <button class="chip" type="button" data-erploc="bureau">Bureau</button>
+              <button class="chip" type="button" data-erploc="couloir">Couloir</button>
+              <button class="chip" type="button" data-erploc="escalier">Cage d'escalier</button>
+              <button class="chip" type="button" data-erploc="cave">Cave / sous-sol</button>
+              <button class="chip" type="button" data-erploc="local_technique">Local technique</button>
+              <button class="chip" type="button" data-erploc="toiture">Toiture</button>
+              <button class="chip" type="button" data-erploc="cuisine">Cuisine</button>
+              <button class="chip" type="button" data-erploc="chambre">Chambre</button>
+              <button class="chip" type="button" data-erploc="salle_soins">Salle de soins</button>
+              <button class="chip" type="button" data-erploc="salle_classe">Salle de classe</button>
+              <button class="chip" type="button" data-erploc="parking">Parking</button>
+              <button class="chip" type="button" data-erploc="autre_loc">Autre</button>
+            </div>
+            <div id="erpFeuLocAutreWrap" hidden style="margin-top:8px;">
+              <input id="erpFeuLocAutre" placeholder="Préciser le lieu (ex : bureau du 3e étage)…"
+                oninput="if(window.state){state.erpFeuLocAutre=this.value.trim();if(typeof updatePreview==='function')updatePreview();}" />
+            </div>
+          </div>
+
           <div class="subcard tight" style="margin-top:12px;">
             <div class="subcard-title">🛡️ Mise en sécurité</div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:10px;">
@@ -6704,6 +6727,8 @@ function renderAgricoleDetails(){
   if (!state.hasOwnProperty('erpAgents')) state.erpAgents = false;
   if (!state.hasOwnProperty('erpMagasin')) state.erpMagasin = "";
   if (!state.hasOwnProperty('erpMagasinAutre')) state.erpMagasinAutre = "";
+  if (!state.hasOwnProperty('erpFeuLoc')) state.erpFeuLoc = "";
+  if (!state.hasOwnProperty('erpFeuLocAutre')) state.erpFeuLocAutre = "";
   if (!state.hasOwnProperty('entrepriseActivite')) state.entrepriseActivite = "";
   if (!state.hasOwnProperty('entrepriseAutre')) state.entrepriseAutre = "";
   if (!state.hasOwnProperty('entrepriseZone')) state.entrepriseZone = "";
@@ -6815,6 +6840,18 @@ function renderAgricoleDetails(){
       if(btn) btn.classList.toggle("active", state.garageVE);
       if(typeof updatePreview==='function') updatePreview();
       return;
+    }
+  });
+
+  // Wiring localisation feu ERP
+  document.addEventListener("click", function(e){
+    var locBtn = e.target.closest("#erpFeuLocChips [data-erploc]");
+    if(locBtn){
+      state.erpFeuLoc = state.erpFeuLoc === locBtn.dataset.erploc ? "" : locBtn.dataset.erploc;
+      document.querySelectorAll("#erpFeuLocChips [data-erploc]").forEach(function(b){ b.classList.toggle("active", b.dataset.erploc === state.erpFeuLoc); });
+      var autreWrap = document.getElementById("erpFeuLocAutreWrap");
+      if(autreWrap) autreWrap.hidden = state.erpFeuLoc !== "autre_loc";
+      if(typeof updatePreview==='function') updatePreview();
     }
   });
 
@@ -8990,6 +9027,27 @@ if (state.incTypeLieu === "FEN"){
       details.push(`surface : ${surf}${surf.match(/m²|m2/i) ? "" : " m²"}`);
     }
     if (details.length) mainPhrase += `, ${details.join(", ")}`;
+
+    // Localisation précise du feu
+    if (state.erpFeuLoc) {
+      var locFeuData = {
+        bureau:        {txt:"bureau",         art:"un"},
+        couloir:       {txt:"couloir",         art:"un"},
+        escalier:      {txt:"cage d'escalier", art:"une"},
+        cave:          {txt:"cave",            art:"une"},
+        local_technique:{txt:"local technique",art:"un"},
+        toiture:       {txt:"toiture",         art:"la"},
+        cuisine:       {txt:"cuisine",         art:"la"},
+        chambre:       {txt:"chambre",         art:"une"},
+        salle_soins:   {txt:"salle de soins",  art:"une"},
+        salle_classe:  {txt:"salle de classe", art:"une"},
+        parking:       {txt:"parking",         art:"le"},
+        autre_loc:     {txt: state.erpFeuLocAutre || "", art:"un"}
+      };
+      var locD = locFeuData[state.erpFeuLoc];
+      if(locD && locD.txt) mainPhrase += `, feu localisé dans ${locD.art} ${locD.txt}`;
+    }
+
     bits.push(mainPhrase);
   }
 
